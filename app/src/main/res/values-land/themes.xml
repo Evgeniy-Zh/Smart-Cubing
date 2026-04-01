@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <style name="Theme.SmartCubing" parent="android:Theme.Material.Light.NoActionBar" />
+
+    <style name="AnimCubeDark">
+        <item name="backgroundColor">#372D2D</item>
+        <item name="scale">10</item>
+        <item name="horizontalAlign">start</item>
+    </style>
+</resources>
