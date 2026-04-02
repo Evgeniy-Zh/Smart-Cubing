@@ -100,7 +100,7 @@ class BleScanner(private val context: Context) : IBleScanner {
             devices.add(device)
         }
         devices
-    }
+    }.map { it.toList() }
 
     override fun getDiscoveredDevices(): List<BtDevice> {
         return discoveredDevices.values.toList()

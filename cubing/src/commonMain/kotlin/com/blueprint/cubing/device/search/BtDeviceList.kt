@@ -17,8 +17,14 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.ArrowForward
+import androidx.compose.material.icons.filled.ArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.KeyboardDoubleArrowRight
+import androidx.compose.material.icons.filled.SubdirectoryArrowRight
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.HorizontalDivider
@@ -63,16 +69,10 @@ fun BtDeviceList(
                     BtDeviceItem(
                         modifier = Modifier.fillMaxWidth(),
                         data = device,
-                        expanded = list.getOrNull(i + 1) is SearchDeviceViewModel.ListItem.Details,
                         onClick = { onItemClick(device) },
                     )
 
                 }
-
-                is SearchDeviceViewModel.ListItem.Details -> {
-                    val device = item.btDevice
-                }
-
             }
         }
     }
@@ -83,7 +83,6 @@ fun BtDeviceList(
 fun BtDeviceItem(
     modifier: Modifier,
     data: BtDevice,
-    expanded: Boolean,
     onClick: () -> Unit = {},
 ) {
     Column(
@@ -115,7 +114,7 @@ fun BtDeviceItem(
             }
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
-                    imageVector = if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    imageVector = Icons.Default.KeyboardArrowRight,
                     contentDescription = "Expand",
                     tint = MaterialTheme.colorScheme.primary
                 )

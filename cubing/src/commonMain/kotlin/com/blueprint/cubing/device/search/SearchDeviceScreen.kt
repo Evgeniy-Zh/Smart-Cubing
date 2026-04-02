@@ -7,6 +7,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import com.blueprint.cubing.device.search.SearchDeviceViewModel.Action.OpenDeviceDetails
 
 @Composable
 fun SearchDeviceScreen(
@@ -17,7 +18,7 @@ fun SearchDeviceScreen(
         BtDeviceList(
             modifier = Modifier.padding(innerPadding),
             list = devices,
-            onItemClick = { viewModel.openDeviceDetails(it) },
+            onItemClick = { viewModel.handleAction(OpenDeviceDetails(device = it)) },
         )
     }
 }

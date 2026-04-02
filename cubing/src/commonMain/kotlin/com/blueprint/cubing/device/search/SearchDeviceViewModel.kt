@@ -18,6 +18,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 
@@ -33,44 +34,34 @@ class SearchDeviceViewModel(
             val btDevice: BtDevice,
             override val key: String = btDevice.address
         ) : ListItem
-
-        data class Details(
-            val btDevice: BtDevice,
-            override val key: String = btDevice.address + "_exp"
-        ) : ListItem
     }
 
-    private val _expanded = MutableStateFlow(persistentSetOf<BtDevice>())
+    sealed interface Action {
+        data class OpenDeviceDetails(val device: BtDevice) : Action
+    }
 
-    val devices: StateFlow<ImmutableList<ListItem>> = combine(
-        flow = bleDeviceScanner.devices.flowOn(Dispatchers.IO),
-        flow2 = _expanded,
-    ) { list, expanded ->
-        buildList {
-            list.forEach {
-                if (it.name != "None") add(ListItem.Device(it))
-                if (expanded.contains(it)) add(ListItem.Details(it))
+    val devices: StateFlow<ImmutableList<ListItem>> =
+        bleDeviceScanner.devices.flowOn(Dispatchers.IO)
+            .map { list ->
+                list.filter { it.name != "None" }
+                    .map { ListItem.Device(it) }
+                    .toPersistentList()
             }
-        }.toPersistentList()
-    }.flowOn(Dispatchers.Default)
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(),
-            initialValue = persistentListOf(),
-        )
+            .flowOn(Dispatchers.Default)
+            .stateIn(
+                scope = viewModelScope,
+                started = SharingStarted.WhileSubscribed(),
+                initialValue = persistentListOf(),
+            )
 
-    fun openDeviceDetails(device: BtDevice) {
-        appNavigator.navigateTo(DeviceDetailsRoute(device.address))
+    fun handleAction(action: Action) {
+        when (action) {
+            is Action.OpenDeviceDetails -> openDeviceDetails(action.device)
+        }
     }
 
-    fun toggleDeviceProps(device: BtDevice) {
-        _expanded.update {
-            if (it.contains(device)) {
-                it - device
-            } else {
-                it + device
-            }.toPersistentSet()
-        }
+    private fun openDeviceDetails(device: BtDevice) {
+        appNavigator.navigateTo(DeviceDetailsRoute(device.address))
     }
 
 }
