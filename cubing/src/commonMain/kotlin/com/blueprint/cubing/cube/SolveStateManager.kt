@@ -1,6 +1,7 @@
 package com.blueprint.cubing.cube
 
 import com.blueprint.cubing.core.model.CubeEvent
+import com.blueprint.cubing.core.pipeline.SolveStartEvents
 import com.blueprint.cubing.core.pipeline.SolveStartNotifier
 import com.blueprint.cubing.cube.timer.CubeTimer
 import com.blueprint.cubing.log.Logger
@@ -120,7 +121,7 @@ class SolveStateManager(
 
     private fun sendSolveStartedEvent(move: CubeEvent.Move?) {
         val timeStamp = move?.systemTimeStamp
-        solveStartNotifier.notifySolveStart(timeStamp)
+        solveStartNotifier.notifySolveStart(SolveStartEvents.EventData(firstMoveTimeStamp = timeStamp))
     }
 
 }

@@ -18,8 +18,8 @@ class SolveStartNotifier: SolveStartEvents {
     )
     override val eventFlow = _eventFlow.asSharedFlow()
 
-    fun notifySolveStart(firstMoveTimeStamp: Long?) {
-        val emitted = _eventFlow.tryEmit(SolveStartEvents.EventData(firstMoveTimeStamp))
+    fun notifySolveStart(data: SolveStartEvents.EventData) {
+        val emitted = _eventFlow.tryEmit(data)
         require(emitted) { "Failed to emit solve start event" }
     }
 }
