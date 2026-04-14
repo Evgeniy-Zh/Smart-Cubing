@@ -87,6 +87,8 @@ kotlin {
                 implementation(libs.androidx.sqlite.bundled)
                 implementation(libs.kotlinx.serialization.json)
 
+                //di
+                implementation(libs.koin)
 
             }
         }
