@@ -68,10 +68,8 @@ class BleScanner : IBleScanner {
                 }
             }
         }
-    }.scan(emptyList()) { devices, device ->
-        if (!discoveredDevices.contains(device.address)) {
-            discoveredDevices[device.address] = device
-        }
+    }.scan(initial = getDiscoveredDevices()) { devices, device ->
+        discoveredDevices.putIfAbsent(device.address, device)
         discoveredDevices.values.toList()
     }
 

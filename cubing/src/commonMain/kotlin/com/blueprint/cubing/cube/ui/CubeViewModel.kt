@@ -20,7 +20,7 @@ import kotlinx.coroutines.launch
 class CubeViewModel(
     private val cubeListRepository: CubeListRepository,
     private val cubeStateManager: CubeStateManager,
-    private val solveStateManager: SolveStateManager = SolveStateManager()
+    private val solveStateManager: SolveStateManager
 ) : ViewModel() {
 
     sealed interface Action {

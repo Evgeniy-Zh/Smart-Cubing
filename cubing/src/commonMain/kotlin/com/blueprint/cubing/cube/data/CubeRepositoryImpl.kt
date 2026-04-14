@@ -13,6 +13,7 @@ import com.blueprint.cubing.core.model.DeviceConnection
 import com.blueprint.cubing.core.pipeline.base.PipelineNode
 import com.blueprint.cubing.core.serialize.base.RequestSerializer
 import com.blueprint.cubing.core.pipeline.base.applyPipeline
+import com.blueprint.cubing.log.Logger
 import com.blueprint.cubing.provider.EndpointProvider
 import com.blueprint.cubing.provider.PipelineProvider
 import com.blueprint.cubing.provider.RequestSerializeProvider
@@ -75,6 +76,7 @@ class CubeRepositoryImpl(
         )
             .applyPipeline(pipeline)
             .collect { event ->
+                Logger.log("CubeRepository", "Emitting event: $event")
                 emit(event)
             }
 

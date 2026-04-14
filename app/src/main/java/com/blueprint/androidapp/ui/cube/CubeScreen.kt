@@ -104,7 +104,7 @@ fun CubeScreen(
 
                         is CubeEvent.RequestRequired -> {}
 
-                        CubeEvent.Solved -> {
+                        is CubeEvent.Solved -> {
 //                        Toast.makeText(context, "Cube Solved!", Toast.LENGTH_SHORT).show()
                         }
 

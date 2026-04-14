@@ -59,7 +59,7 @@ internal fun MainScreen(
                 }
 
                 is CubeEvent.RequestRequired -> {}
-                CubeEvent.Solved -> {}
+                is CubeEvent.Solved -> {}
                 CubeEvent.Unsupported -> {}
             }
         }

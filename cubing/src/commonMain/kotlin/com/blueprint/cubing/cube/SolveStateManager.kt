@@ -1,7 +1,9 @@
 package com.blueprint.cubing.cube
 
 import com.blueprint.cubing.core.model.CubeEvent
+import com.blueprint.cubing.core.pipeline.SolveStartNotifier
 import com.blueprint.cubing.cube.timer.CubeTimer
+import com.blueprint.cubing.log.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -9,7 +11,9 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
-class SolveStateManager {
+class SolveStateManager(
+    private val solveStartNotifier: SolveStartNotifier,
+) {
 
     interface WithTime {
         val time: String
@@ -34,7 +38,7 @@ class SolveStateManager {
         when (event) {
             is CubeEvent.Move -> onMove(event)
 
-            CubeEvent.Solved -> onSolved()
+            is CubeEvent.Solved -> onSolved(event)
 
             is CubeEvent.CubeStateUpdated -> {}
 
@@ -45,13 +49,13 @@ class SolveStateManager {
     }
 
     fun proceed() {
-       when(state.value) {
-           is SolveState.Idle -> inspect()
-           is SolveState.Scrambling -> inspect()
-           is SolveState.Inspecting -> start()
-           is SolveState.Solving -> giveUp()
-           is SolveState.Solved -> idle()
-       }
+        when (state.value) {
+            is SolveState.Idle -> inspect()
+            is SolveState.Scrambling -> inspect()
+            is SolveState.Inspecting -> start(move = null)
+            is SolveState.Solving -> giveUp()
+            is SolveState.Solved -> idle()
+        }
     }
 
     private fun idle() {
@@ -62,15 +66,16 @@ class SolveStateManager {
     }
 
     private fun inspect() {
-        if(state.value is SolveState.Solved) return
+        if (state.value is SolveState.Solved) return
         coroutineScope.launch {
             _state.emit(SolveState.Inspecting(15.toString()))
         }
     }
 
-    private fun start() {
+    private fun start(move: CubeEvent.Move?) {
         timer.reset()
         timer.start(coroutineScope)
+        sendSolveStartedEvent(move)
         coroutineScope.launch {
             timer.currentTime.collectLatest {
                 _state.emit(SolveState.Solving(it))
@@ -88,7 +93,7 @@ class SolveStateManager {
     private suspend fun onMove(event: CubeEvent.Move) {
         when (state.value) {
             is SolveState.Inspecting -> {
-                start()
+                start(move = event)
             }
 
             is SolveState.Idle, is SolveState.Solved -> {
@@ -99,13 +104,23 @@ class SolveStateManager {
         }
     }
 
-    private suspend fun onSolved() {
+    private suspend fun onSolved(event: CubeEvent.Solved) {
         if (state.value is SolveState.Solving) {
             timer.stop()
-            _state.emit(SolveState.Solved(timer.getTotalTimeFormatted()))
+
+            val time = event.totalTime?.let { CubeTimer.formatTime(it) }
+                ?: timer.getTotalTimeFormatted()
+            Logger.log("SolveStateManager","Measured time: ${event.totalTime?.let { CubeTimer.formatTime(it) }}")
+            Logger.log("SolveStateManager","Timer time: ${timer.getTotalTimeFormatted()}")
+            _state.emit(SolveState.Solved(time = time))
         } else {
             _state.emit(SolveState.Idle)
         }
+    }
+
+    private fun sendSolveStartedEvent(move: CubeEvent.Move?) {
+        val timeStamp = move?.systemTimeStamp
+        solveStartNotifier.notifySolveStart(timeStamp)
     }
 
 }

@@ -26,7 +26,7 @@ internal class CubeSolverImpl: CubeSolverNode {
             channel.mapNotNull {
                 val solved = cubeState?.facelets == solvedStr
                 return@mapNotNull if (solved) {
-                    CubeEvent.Solved
+                    CubeEvent.Solved()
                 } else {
                     null
                 }

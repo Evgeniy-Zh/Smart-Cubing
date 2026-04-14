@@ -4,6 +4,9 @@ import com.blueprint.bleapi.IBleScanner
 import com.blueprint.blewindows.BleScanner
 import com.blueprint.cubing.core.model.CubeEvent
 import com.blueprint.cubing.core.pipeline.CubeSolverNode
+import com.blueprint.cubing.core.pipeline.SolveStartEvents
+import com.blueprint.cubing.core.pipeline.SolveStartNotifier
+import com.blueprint.cubing.core.pipeline.SolveSummaryNode
 import com.blueprint.cubing.core.pipeline.UiMapperNode
 import com.blueprint.cubing.cube.CubeRepository
 import com.blueprint.cubing.cube.CubeStateManager
@@ -50,12 +53,14 @@ val appModule = module {
             }
         }
     }
-    single { PipelineProvider(cubeSolverNode = get(), uiMapperNode = get()) }
-    single { SolveStateManager() }
+    single { PipelineProvider(cubeSolverNode = get(), uiMapperNode = get(), solveSummaryNode = get()) }
+    single { SolveStateManager(solveStartNotifier = get()) }
     single<CubeDeviceDB> { getCubeDatabase() }
     single<CubeListRepository> { CubeListRepositoryImpl(cubeDeviceDB = get()) }
     single { CubeStateManager(repository = get(), deviceRepository = get()) }
     single { SupportedDevices() }
+    single { SolveStartNotifier() } binds arrayOf(SolveStartNotifier::class, SolveStartEvents::class)
+    single { SolveSummaryNode(solveStartEvents = get()) }
 
     viewModelOf(::CubeViewModel)
     viewModelOf(::SearchDeviceViewModel)

@@ -25,7 +25,7 @@ class AnimCubeViewSolverNode : CubeSolverNode {
             channel.mapNotNull {
                 val solved = cubeView?.isSolved()
                 return@mapNotNull if (solved == true) {
-                    CubeEvent.Solved
+                    CubeEvent.Solved()
                 } else {
                     null
                 }

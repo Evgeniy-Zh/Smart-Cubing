@@ -21,12 +21,15 @@ class CubeTimer() {
     var startTimeStamp = 0L
     var endTimeStamp = 0L
 
-    private fun formatTime(time: Long): String {
-        val minutes = time / 60000
-        val seconds = (time % 60000) / 1000
-        val milliseconds = time % 1000
+    companion object {
 
-        return "${minutes.format(2)}:${seconds.format(2)}:${milliseconds.format(3)}"
+        fun formatTime(time: Long): String {
+            val minutes = time / 60000
+            val seconds = (time % 60000) / 1000
+            val milliseconds = time % 1000
+
+            return "${minutes.format(2)}:${seconds.format(2)}:${milliseconds.format(3)}"
+        }
     }
 
     private var timerJob: kotlinx.coroutines.Job? = null

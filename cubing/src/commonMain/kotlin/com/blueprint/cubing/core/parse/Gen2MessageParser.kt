@@ -21,8 +21,6 @@ class Gen2MessageParser {
 
     // Состояние для парсинга между событиями
     private var lastSerial: Int = -1
-    private var lastMoveTimestamp: Long = 0L
-    private var cubeTimestamp: Long = 0L
 
     // Храним последний известный стейт куба; по умолчанию решённый
     private fun solvedState(): Impl = Impl(
@@ -70,7 +68,7 @@ class Gen2MessageParser {
                 val vz = msg.getBitWord(76, 4).toInt()
 
                 // Для текущей реализации — логируем значения, состояние куба не меняется
-                Logger.log("GanCubeStateRepo", "GYRO qw=$qw qx=$qx qy=$qy qz=$qz vx=$vx vy=$vy vz=$vz")
+                Logger.log("MessageParser", "GYRO qw=$qw qx=$qx qy=$qy qz=$qz vx=$vx vy=$vy vz=$vz")
                 return CubeEvent.Unsupported
             }
 
@@ -81,28 +79,25 @@ class Gen2MessageParser {
 
                     lastSerial = serial
                     var moveStr = ""
+                    var elapsed = 0L
                     if (diff > 0) {
                         for (i in (diff - 1) downTo 0) {
                             val face = msg.getBitWord(12 + 5 * i, 4).toInt()
                             val direction = msg.getBitWord(16 + 5 * i, 1).toInt()
-                            var elapsed = msg.getBitWord(47 + 16 * i, 16)
-                            if (elapsed == 0L) {
-                                elapsed = now - lastMoveTimestamp
-                            }
+                            elapsed = msg.getBitWord(47 + 16 * i, 16)
+
                             if(i != 0) {
                                 Logger.log("MessageParser", "Missed and recovered events")
                             }
-                            cubeTimestamp += elapsed
                             Logger.log(
-                                "GanCubeStateRepo",
-                                "MOVE serial=$serial face=$face dir=$direction elapsed=$elapsed cubeTs=$cubeTimestamp"
+                                "MessageParser",
+                                "MOVE serial=$serial face=$face dir=$direction elapsed=$elapsed"
                             )
                             moveStr += " " + moveChars[face] + if (direction == 1) "'" else ""
                         }
-                        lastMoveTimestamp = now
 
                     }
-                    return CubeEvent.Move(moveStr.trim())
+                    return CubeEvent.Move(moveStr.trim(), elapsed = elapsed)
                 }
 
                 return CubeEvent.Unsupported
@@ -175,7 +170,7 @@ class Gen2MessageParser {
                 val hardwareName = sb.toString()
 
                 Logger.log(
-                    "GanCubeStateRepo",
+                    "MessageParser",
                     "HARDWARE name=$hardwareName hw=$hwMajor.$hwMinor sw=$swMajor.$swMinor gyro=$gyroSupported"
                 )
                 return CubeEvent.Unsupported
@@ -183,13 +178,13 @@ class Gen2MessageParser {
 
             0x09 -> { // BATTERY
                 val batteryLevel = msg.getBitWord(8, 8).toInt()
-                Logger.log("GanCubeStateRepo", "BATTERY level=$batteryLevel")
+                Logger.log("MessageParser", "BATTERY level=$batteryLevel")
                 return CubeEvent.Unsupported
             }
 
             0x0D -> { // DISCONNECT
                 // conn.disconnect() in original code — skipped as requested
-                Logger.log("GanCubeStateRepo", "DISCONNECT event received")
+                Logger.log("MessageParser", "DISCONNECT event received")
                 return CubeEvent.Unsupported
             }
 

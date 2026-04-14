@@ -8,17 +8,30 @@ import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalTime::class)
-class TimerNode : PipelineNode<CubeEvent, CubeEvent> {
-    private var lastEventTimeStamp: Long = 0
+class TimerNode(
+    private val getSysTimeStamp: () -> Long = { Clock.System.now().toEpochMilliseconds() }
+) : PipelineNode<CubeEvent, CubeEvent> {
+
+    private var cubeTimeStamp: Long = 0
+    private var lastMoveTimeStamp: Long = 0
 
     override suspend fun apply(inputFlow: Flow<CubeEvent>): Flow<CubeEvent> {
-        //TODO: Use timestamps from cube events
+
         return flow {
             inputFlow.collect { event ->
                 if (event is CubeEvent.Move) {
-                    val timeBetweenMoves = Clock.System.now().toEpochMilliseconds() - lastEventTimeStamp
-                    lastEventTimeStamp = Clock.System.now().toEpochMilliseconds()
-                    emit(event.copy(timestamp = timeBetweenMoves))
+                    val now = getSysTimeStamp()
+
+                    var elapsed = event.elapsed
+                    if(elapsed == 0L) {
+                        elapsed = now - lastMoveTimeStamp
+                    }
+
+                    lastMoveTimeStamp = now
+
+                    cubeTimeStamp += elapsed
+
+                    emit(event.copy(elapsed = elapsed, cubeTimeStamp = cubeTimeStamp, systemTimeStamp = now))
                 } else {
                     emit(event)
                 }
