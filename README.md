@@ -17,3 +17,8 @@ Cubing application designed for smart cubes
   -  Monster Go 3Ai
      
 - MoYu AI 2023 (this cube uses GAN Gen2 protocol)
+
+- 
+
+https://github.com/user-attachments/assets/beeb8db2-25f2-45e9-ba19-67a318959d59
+
