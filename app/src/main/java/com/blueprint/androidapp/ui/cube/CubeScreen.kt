@@ -5,19 +5,13 @@ import android.view.WindowManager
 import android.widget.Toast
 import androidx.activity.compose.LocalActivity
 import androidx.appcompat.view.ContextThemeWrapper
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.BoxWithConstraints
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -30,7 +24,6 @@ import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
@@ -38,19 +31,17 @@ import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.flowWithLifecycle
 import com.blueprint.androidapp.R
+import com.blueprint.androidapp.impl.AnimCubeViewSolverNode
 import com.blueprint.androidapp.ui.cube.ext.animateSequenceAsync
 import com.blueprint.androidapp.ui.cube.ext.disconnectedCubeState
+import com.blueprint.androidapp.ui.cube.mapper.ANIM_CUBE_STATE
 import com.blueprint.cubing.core.model.ConnectionState
 import com.blueprint.cubing.core.model.CubeEvent
-import com.blueprint.androidapp.impl.AnimCubeViewSolverNode
-import com.blueprint.cubing.navigation.AppNavigator
-import com.blueprint.cubing.navigation.SearchDevicesRoute
+import com.blueprint.cubing.core.pipeline.CubeSolverNode
+import com.blueprint.cubing.cube.ui.CubeViewModel
 import com.blueprint.cubing.cube.ui.components.Cube2D
 import com.blueprint.cubing.cube.ui.components.CubeOverlay
 import com.blueprint.cubing.cube.ui.components.rememberCube2DState
-import com.blueprint.androidapp.ui.cube.mapper.ANIM_CUBE_STATE
-import com.blueprint.cubing.cube.ui.CubeViewModel
-import com.blueprint.cubing.core.pipeline.CubeSolverNode
 import com.catalinjurjiu.animcubeandroid.AnimCube
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -63,7 +54,6 @@ fun CubeScreen(
     modifier: Modifier = Modifier,
     animCubeViewSolverNode: CubeSolverNode = koinInject(),
     cubeViewModel: CubeViewModel = koinViewModel(),
-    appNavigator: AppNavigator = koinInject(),
 ) {
     animCubeViewSolverNode as AnimCubeViewSolverNode
     val activity = LocalActivity.current
@@ -184,17 +174,6 @@ fun CubeScreen(
                         .fillMaxSize(),
                     state = state,
                     onAction = { action -> cubeViewModel.handleAction(action) },
-                )
-
-                Icon(
-                    modifier = Modifier //TODO: Remove appNavigator from the screen
-                        .align(Alignment.BottomEnd)
-                        .padding(16.dp)
-                        .clickable(onClick = { appNavigator.navigateTo(SearchDevicesRoute) })
-                        .background(color = Color.Gray, shape = CircleShape)
-                        .padding(8.dp),
-                    imageVector = Icons.Default.Search,
-                    contentDescription = "Search"
                 )
             }
 

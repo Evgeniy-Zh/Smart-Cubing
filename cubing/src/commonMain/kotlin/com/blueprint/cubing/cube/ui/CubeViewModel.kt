@@ -8,6 +8,8 @@ import com.blueprint.cubing.core.model.CubeDevice
 import com.blueprint.cubing.core.model.CubeEvent
 import com.blueprint.cubing.cube.SolveStateManager
 import com.blueprint.cubing.device.list.CubeListRepository
+import com.blueprint.cubing.navigation.AppNavigator
+import com.blueprint.cubing.navigation.SearchDevicesRoute
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
@@ -20,7 +22,8 @@ import kotlinx.coroutines.launch
 class CubeViewModel(
     private val cubeListRepository: CubeListRepository,
     private val cubeStateManager: CubeStateManager,
-    private val solveStateManager: SolveStateManager
+    private val solveStateManager: SolveStateManager,
+    private val appNavigator: AppNavigator,
 ) : ViewModel() {
 
     sealed interface Action {
@@ -51,11 +54,9 @@ class CubeViewModel(
         started = SharingStarted.Eagerly,
     )
 
-    val solveState : Flow<SolveStateManager.SolveState> = solveStateManager.state
-
     val state = combine(
         cubeStateManager.connectionState,
-        solveState,
+        solveStateManager.state,
         cubeListRepository.observeActiveDevice(),
         cubeListRepository.observeDevices()
     ) { connectionState, solveState, activeDevice, devices ->
@@ -80,7 +81,7 @@ class CubeViewModel(
             Action.Reset -> reset()
             Action.Disconnect -> disconnect()
             Action.SolveAction -> solveAction()
-            Action.SearchDevices -> TODO()
+            Action.SearchDevices -> searchDevices()
             is Action.SelectDevice -> selectDevice(action.device)
         }
     }
@@ -97,12 +98,16 @@ class CubeViewModel(
         cubeStateManager.reset()
     }
 
+    private fun searchDevices() {
+        appNavigator.navigateTo(route = SearchDevicesRoute)
+    }
+
     private fun selectDevice(device: CubeDevice) = viewModelScope.launch {
         cubeListRepository.setAsActive(device)
     }
 
     private fun disconnect() = viewModelScope.launch {
-        TODO()
+        cubeListRepository.setAsActive(null)
     }
 
 }

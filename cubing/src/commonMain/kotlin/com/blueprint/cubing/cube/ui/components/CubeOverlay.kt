@@ -12,9 +12,11 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -143,13 +145,12 @@ fun CubeOverlayContent(
         // Middle: intentionally left empty; cube will be visible underneath this overlay.
 
         // Bottom: timer, solve state and action button
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxWidth()
                 .align(Alignment.BottomCenter)
                 .padding(16.dp),
-            horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            contentAlignment = Alignment.Center,
         ) {
 
             // Clickable timer area
@@ -201,10 +202,22 @@ fun CubeOverlayContent(
                 Text(
                     text = tapActionLabel,
                     fontSize = 13.sp,
-                    color = Color.Gray,
+                    color = Color.LightGray,
                     style = MaterialTheme.typography.labelSmall
                 )
             }
+
+            Icon(
+                modifier = Modifier
+                    .align(Alignment.BottomEnd)
+                    .padding(16.dp)
+                    .clickable(onClick = { onAction(CubeViewModel.Action.SearchDevices) })
+                    .background(color = Color.Gray, shape = CircleShape)
+                    .padding(8.dp),
+                imageVector = Icons.Default.Search,
+                contentDescription = "Search"
+            )
+
         }
 
     }

@@ -18,7 +18,6 @@ import com.blueprint.cubing.device.search.DeviceDetailsScreen
 import com.blueprint.cubing.device.search.DeviceDetailsViewModel
 import com.blueprint.cubing.device.search.SearchDeviceScreen
 import com.blueprint.cubing.device.search.SearchDeviceViewModel
-import com.blueprint.cubing.navigation.AppNavigator
 import com.blueprint.cubing.navigation.CharacteristicDetailsRoute
 import com.blueprint.cubing.navigation.DeviceDetailsRoute
 import com.blueprint.cubing.navigation.NavAction
@@ -67,8 +66,7 @@ fun App() {
 
             val vm = koinViewModel<CubeViewModel>()
             val solver = koinInject<CubeSolverImpl>()
-            val appNavigator = koinInject<AppNavigator>()
-            MainScreen(vm, solver, appNavigator)
+            MainScreen(vm, solver)
         }
 
         composable<SearchDevicesRoute>() {
