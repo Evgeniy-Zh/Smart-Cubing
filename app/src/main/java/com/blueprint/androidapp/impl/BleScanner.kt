@@ -333,7 +333,7 @@ class BleScanner(private val context: Context) : IBleScanner {
             .filterNotNull()
             .buffer(capacity = 20)
             .filter { it.deviceAddress == device.address && it.serviceUuid == serviceUuid && it.characteristicUuid == characteristic }
-            .mapNotNull { it.value }
+            .map { it.value }
     }
 
     override fun findCharacteristicsInConnections(
