@@ -50,7 +50,16 @@ fun App() {
                 }
 
                 is NavAction.NavigateBack -> {
-                    navController.popBackStack()
+                    val route = action.route
+                    if(route == null) {
+                        navController.popBackStack()
+                    } else {
+                        navController.popBackStack(
+                            route = route,
+                            inclusive = true,
+                            saveState = false
+                        )
+                    }
                 }
             }
 
