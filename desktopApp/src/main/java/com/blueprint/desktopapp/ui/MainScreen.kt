@@ -50,6 +50,7 @@ internal fun MainScreen(
 
                 is CubeEvent.RequestRequired -> {}
                 is CubeEvent.Solved -> {}
+                is CubeEvent.Error -> {}
                 CubeEvent.Unsupported -> {}
             }
         }

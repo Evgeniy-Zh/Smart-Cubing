@@ -45,6 +45,8 @@ class SolveStateManager(
 
             is CubeEvent.RequestRequired -> {}
 
+            is CubeEvent.Error -> {}
+
             CubeEvent.Unsupported -> {}
         }
     }

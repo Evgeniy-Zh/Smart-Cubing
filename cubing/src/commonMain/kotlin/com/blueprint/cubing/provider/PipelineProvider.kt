@@ -3,6 +3,7 @@ package com.blueprint.cubing.provider
 import com.blueprint.bleapi.model.BtDevice
 import com.blueprint.cubing.core.model.CubeEvent
 import com.blueprint.cubing.core.pipeline.CubeSolverNode
+import com.blueprint.cubing.core.pipeline.ExceptionHandlerNode
 import com.blueprint.cubing.core.pipeline.Gen2DecryptionNode
 import com.blueprint.cubing.core.pipeline.Gen2MessageParserNode
 import com.blueprint.cubing.core.pipeline.SolveSummaryNode
@@ -23,11 +24,13 @@ class PipelineProvider(
 
         val decryptionNode = Gen2DecryptionNode(macAddress = device.address)
         val messageParserNode = Gen2MessageParserNode()
+        val exceptionHandlerNode = ExceptionHandlerNode()
         val timerNode = TimerNode()
 
         return node
             .then(decryptionNode)
             .then(messageParserNode)
+            .then(exceptionHandlerNode)
             .then(timerNode)
             .then(cubeSolverNode)
             .then(solveSummaryNode)

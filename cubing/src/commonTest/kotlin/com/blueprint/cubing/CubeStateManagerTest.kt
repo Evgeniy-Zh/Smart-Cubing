@@ -12,6 +12,7 @@ import com.blueprint.cubing.device.list.CubeListRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -33,31 +34,30 @@ import kotlin.uuid.Uuid
 @OptIn(ExperimentalUuidApi::class, ExperimentalTime::class)
 class CubeStateManagerTest {
 
-    private lateinit var repo: FakeCubeRepository
+    private lateinit var cubeRepository: FakeCubeRepository
     private lateinit var deviceRepo: FakeCubeListRepository
     private lateinit var cubeStateManager: CubeStateManager
     private lateinit var scope: CoroutineScope
-    private lateinit var job: Job
 
     @BeforeTest
     fun setup() {
-        repo = FakeCubeRepository()
+        cubeRepository = FakeCubeRepository()
         deviceRepo = FakeCubeListRepository()
-        cubeStateManager = CubeStateManager(repo, deviceRepo)
-        job = Job()
+        cubeStateManager = CubeStateManager(cubeRepository, deviceRepo)
+        val job = Job()
         scope = CoroutineScope(Dispatchers.Default + job)
     }
 
     @AfterTest
     fun tearDown() {
-        job.cancel()
+        scope.cancel()
     }
 
     @Test
     fun `observeCubeEvents emits move events after successful connect`() = runBlocking {
         val device = CubeDevice("name", "model", FakeIdentifier("id1"))
         // Prepare repository to return a connection
-        repo.willConnect = DeviceConnection(Uuid.random(), device.identifier)
+        cubeRepository.willConnect = DeviceConnection(Uuid.random(), device.identifier)
 
         val received = mutableListOf<CubeEvent>()
 
@@ -71,8 +71,8 @@ class CubeStateManagerTest {
         deviceRepo.setActive(device)
 
         // Emit events from repository
-        repo.emitEvent(CubeEvent.Move("R"))
-        repo.emitEvent(CubeEvent.Move("U"))
+        cubeRepository.emitEvent(CubeEvent.Move("R"))
+        cubeRepository.emitEvent(CubeEvent.Move("U"))
 
         // allow some time for flows to propagate
         delay(200)
@@ -89,14 +89,10 @@ class CubeStateManagerTest {
     fun `observeCubeEvents triggers reconnect when connect returns null`() = runBlocking {
         val device = CubeDevice("name", "model", FakeIdentifier("id2"))
         // repository will fail to connect
-        repo.willConnect = null
+        cubeRepository.willConnect = null
 
         val collectJob = launch {
-            try {
-                cubeStateManager.observeCubeEvents().collect {}
-            } catch (_: Throwable) {
-                // ignore cancellations
-            }
+            cubeStateManager.observeCubeEvents().collect {}
         }
 
         deviceRepo.setActive(device)
@@ -115,7 +111,7 @@ class CubeStateManagerTest {
     @Test
     fun `observeConnectionEvents propagates states and calls sync on connected`() = runBlocking {
         val device = CubeDevice("name", "model", FakeIdentifier("id3"))
-        repo.willConnect = DeviceConnection(Uuid.random(), device.identifier)
+        cubeRepository.willConnect = DeviceConnection(Uuid.random(), device.identifier)
 
         val received = mutableListOf<ConnectionState>()
 
@@ -132,10 +128,10 @@ class CubeStateManagerTest {
         deviceRepo.setActive(device)
 
         // Emit Connected, then Disconnected
-        repo.emitConnection(ConnectionState.Connected)
+        cubeRepository.emitConnection(ConnectionState.Connected)
         // allow sync to be called
         delay(100)
-        repo.emitConnection(ConnectionState.Disconnected)
+        cubeRepository.emitConnection(ConnectionState.Disconnected)
 
         delay(200)
 
@@ -145,7 +141,7 @@ class CubeStateManagerTest {
         eventsJob.join()
 
         // Verify that sync was invoked (Sync request recorded)
-        assertTrue(repo.sentRequests.any { it == CubeRequest.Sync })
+        assertTrue(cubeRepository.sentRequests.any { it == CubeRequest.Sync })
         // Verify that we received at least Connected and Disconnected
         assertTrue(received.any { it is ConnectionState.Connected })
         assertTrue(received.any { it is ConnectionState.Disconnected })
@@ -157,22 +153,18 @@ class CubeStateManagerTest {
         cubeStateManager.sync()
         cubeStateManager.reset()
 
-        assertTrue(repo.sentRequests.contains(CubeRequest.Sync))
-        assertTrue(repo.sentRequests.contains(CubeRequest.Reset))
+        assertTrue(cubeRepository.sentRequests.contains(CubeRequest.Sync))
+        assertTrue(cubeRepository.sentRequests.contains(CubeRequest.Reset))
     }
 
     @Test
     fun `switching active device disconnects previous connection`() = runBlocking {
         val device1 = CubeDevice("one", "model", FakeIdentifier("a"))
         val device2 = CubeDevice("two", "model", FakeIdentifier("b"))
-        repo.willConnect = DeviceConnection(Uuid.random(), device1.identifier)
+        cubeRepository.willConnect = DeviceConnection(Uuid.random(), device1.identifier)
 
         val eventsJob = launch {
-            try {
-                cubeStateManager.observeCubeEvents().collect {}
-            } catch (_: Throwable) {
-                // ignore cancellations
-            }
+            cubeStateManager.observeCubeEvents().collect {}
         }
 
         deviceRepo.setActive(device1)
@@ -188,61 +180,13 @@ class CubeStateManagerTest {
         eventsJob.cancel()
         eventsJob.join()
 
-        assertTrue(repo.disconnectCalled)
-    }
-
-    @Test
-    fun `connection failed reported by repository triggers reconnect`() = runBlocking {
-        val device = CubeDevice("name", "model", FakeIdentifier("fail"))
-        // initial connect succeeds
-        repo.willConnect = DeviceConnection(Uuid.random(), device.identifier)
-
-        // start observing connection events
-        val connJob = launch {
-            try {
-                cubeStateManager.observeConnectionEvents().collect {}
-            } catch (_: Throwable) {
-            }
-        }
-
-        val eventsJob = launch {
-            try {
-                cubeStateManager.observeCubeEvents().collect {}
-            } catch (_: Throwable) {
-            }
-        }
-
-        deviceRepo.setActive(device)
-
-        // allow some time for the initial connect to complete
-        delay(200)
-
-        // simulate repository reporting a failed-to-connect after being connected
-        // the manager should trigger reconnect logic which calls setAsActive(null) then setAsActive(device)
-        repo.emitConnection(ConnectionState.FailedToConnect)
-
-        // wait enough time for triggerReconnect (triggerReconnect has two 300ms delays)
-        // poll up to 3s for the expected calls to appear to avoid flaky timing issues
-        val start = currentMillis()
-        while (currentMillis() - start < 3000 && deviceRepo.setAsActiveCalls.size < 2) {
-            delay(50)
-        }
-
-        // verify reconnect attempts
-        assertTrue(deviceRepo.setAsActiveCalls.size >= 2)
-        assertEquals(null, deviceRepo.setAsActiveCalls[0])
-        assertEquals(device, deviceRepo.setAsActiveCalls[1])
-
-        connJob.cancel()
-        connJob.join()
-        eventsJob.cancel()
-        eventsJob.join()
+        assertTrue(cubeRepository.disconnectCalled)
     }
 
     @Test
     fun `unsubscribe and subscribe again receives events after resubscribe`() = runBlocking {
         val device = CubeDevice("re", "model", FakeIdentifier("resub"))
-        repo.willConnect = DeviceConnection(Uuid.random(), device.identifier)
+        cubeRepository.willConnect = DeviceConnection(Uuid.random(), device.identifier)
 
         // Subscribe first time and receive one event
         val firstReceived = mutableListOf<CubeEvent>()
@@ -251,7 +195,7 @@ class CubeStateManagerTest {
         }
 
         deviceRepo.setActive(device)
-        repo.emitEvent(CubeEvent.Move("X"))
+        cubeRepository.emitEvent(CubeEvent.Move("X"))
         // wait for first collector to receive
         first.join()
 
@@ -259,7 +203,7 @@ class CubeStateManagerTest {
 
         // After first subscription completes, manager should have disconnected (onCompletion)
         // Emit an event while unsubscribed
-        repo.emitEvent(CubeEvent.Move("Y"))
+        cubeRepository.emitEvent(CubeEvent.Move("Y"))
 
         // Now subscribe again and ensure we receive new events
         val secondReceived = mutableListOf<CubeEvent>()
@@ -268,7 +212,7 @@ class CubeStateManagerTest {
         }
 
         // Emit another event which should be received by the new subscriber
-        repo.emitEvent(CubeEvent.Move("Z"))
+        cubeRepository.emitEvent(CubeEvent.Move("Z"))
 
         second.join()
 

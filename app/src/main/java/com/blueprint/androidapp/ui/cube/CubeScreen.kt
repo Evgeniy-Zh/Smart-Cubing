@@ -94,8 +94,14 @@ fun CubeScreen(
 
                         is CubeEvent.RequestRequired -> {}
 
-                        is CubeEvent.Solved -> {
-//                        Toast.makeText(context, "Cube Solved!", Toast.LENGTH_SHORT).show()
+                        is CubeEvent.Solved -> {}
+
+                        is CubeEvent.Error -> {
+                            Toast.makeText(
+                                context,
+                                "Error occurred: ${event.throwable.message}",
+                                Toast.LENGTH_SHORT
+                            ).show()
                         }
 
                         CubeEvent.Unsupported -> {

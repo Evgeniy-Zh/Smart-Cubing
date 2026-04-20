@@ -26,7 +26,7 @@ val commonMainModule = module {
     single { PipelineProvider(cubeSolverNode = get(), uiMapperNode = get(), solveSummaryNode = get()) }
     single { SolveStateManager(solveStartNotifier = get()) }
     single<CubeListRepository> { CubeListRepositoryImpl(cubeDeviceDB = get()) }
-    single { CubeStateManager(repository = get(), deviceRepository = get()) }
+    single { CubeStateManager(cubeRepository = get(), cubeListRepository = get()) }
     single { SupportedDevices() }
     single { SolveStartNotifier() } binds arrayOf(SolveStartNotifier::class, SolveStartEvents::class)
     single { SolveSummaryNode(solveStartEvents = get()) }

@@ -14,5 +14,6 @@ sealed class CubeEvent {
         val arbitraryFormattedStates: Map<String, String> = emptyMap(),
     ) : CubeEvent()
     data class RequestRequired(val request: CubeRequest): CubeEvent()
+    class Error(val throwable: Throwable, val displayMessage: String? = null) : CubeEvent()
     data object Unsupported : CubeEvent()
 }
