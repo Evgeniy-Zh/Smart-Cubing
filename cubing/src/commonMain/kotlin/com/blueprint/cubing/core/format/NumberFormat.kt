@@ -1,4 +1,4 @@
-package com.blueprint.cubing.cube.ui.format
+package com.blueprint.cubing.core.format
 
 private val nine = "9999999999"
 

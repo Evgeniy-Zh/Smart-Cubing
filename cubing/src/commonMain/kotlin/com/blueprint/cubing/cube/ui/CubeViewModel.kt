@@ -2,15 +2,15 @@ package com.blueprint.cubing.cube.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.blueprint.cubing.cube.CubeStateManager
+import com.blueprint.cubing.core.flow.shareSuspendingWhileNoSubs
 import com.blueprint.cubing.core.model.ConnectionState
 import com.blueprint.cubing.core.model.CubeDevice
 import com.blueprint.cubing.core.model.CubeEvent
+import com.blueprint.cubing.cube.CubeStateManager
 import com.blueprint.cubing.cube.SolveStateManager
 import com.blueprint.cubing.device.list.CubeListRepository
 import com.blueprint.cubing.navigation.AppNavigator
 import com.blueprint.cubing.navigation.SearchDevicesRoute
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -44,9 +44,8 @@ class CubeViewModel(
 
     val cubeEvents: SharedFlow<CubeEvent> = cubeStateManager.observeCubeEvents()
         .onEach { solveStateManager.onCubeEvent(it) }
-        .shareIn(
+        .shareSuspendingWhileNoSubs(
             scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
         )
 
     val connectionEvents = cubeStateManager.observeConnectionEvents().shareIn(

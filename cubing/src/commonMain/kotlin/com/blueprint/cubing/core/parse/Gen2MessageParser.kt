@@ -5,7 +5,6 @@ import com.blueprint.cubing.core.model.CubeEvent
 import com.blueprint.cubing.core.model.CubePermState
 import com.blueprint.cubing.log.Logger
 import kotlin.math.min
-import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalUnsignedTypes::class, ExperimentalTime::class)
@@ -50,7 +49,6 @@ class Gen2MessageParser {
     @Suppress("UNUSED_PARAMETER")
     private fun parseMessage(bytes: ByteArray): CubeEvent {
 
-        val now = Clock.System.now().toEpochMilliseconds()
         val msg = GanProtocolMessageView(bytes)
         val eventType = msg.getBitWord(0, 4).toInt()
 

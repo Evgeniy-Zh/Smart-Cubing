@@ -1,6 +1,8 @@
 package com.blueprint.cubing.cube.timer
 
-import com.blueprint.cubing.cube.ui.format.format
+import com.blueprint.cubing.core.format.TimeFormat
+import com.blueprint.cubing.core.format.format
+import com.blueprint.cubing.core.format.formatTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -13,29 +15,21 @@ import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalTime::class)
-class CubeTimer() {
+class CubeTimer(
+    private val format: TimeFormat,
+    private val getSysTimeStamp: () -> Long = { Clock.System.now().toEpochMilliseconds() },
+) {
 
     private val _currentTime = MutableSharedFlow<Long>()
-    val currentTime: Flow<String> = _currentTime.map { formatTime(it) }
+    val currentTime: Flow<String> = _currentTime.map { it.formatTime(format) }
 
     var startTimeStamp = 0L
     var endTimeStamp = 0L
 
-    companion object {
-
-        fun formatTime(time: Long): String {
-            val minutes = time / 60000
-            val seconds = (time % 60000) / 1000
-            val milliseconds = time % 1000
-
-            return "${minutes.format(2)}:${seconds.format(2)}:${milliseconds.format(3)}"
-        }
-    }
-
     private var timerJob: kotlinx.coroutines.Job? = null
 
     fun start(coroutineScope: CoroutineScope) {
-        startTimeStamp = Clock.System.now().toEpochMilliseconds()
+        startTimeStamp = getSysTimeStamp()
         timerJob = coroutineScope.launch(Dispatchers.Default) {
             while (true) {
                 ensureActive()
@@ -47,7 +41,7 @@ class CubeTimer() {
 
     suspend fun stop() {
         timerJob?.cancel()
-        endTimeStamp = Clock.System.now().toEpochMilliseconds()
+        endTimeStamp = getSysTimeStamp()
         timerJob?.join()
     }
 
@@ -65,10 +59,10 @@ class CubeTimer() {
 
     fun getTotalTimeFormatted(): String {
         val totalTime = getTotalTime()
-        return formatTime(totalTime)
+        return totalTime.formatTime(format)
     }
 
-    private suspend fun emitCurrentTime(end: Long = Clock.System.now().toEpochMilliseconds()) {
+    private suspend fun emitCurrentTime(end: Long = getSysTimeStamp()) {
         if(startTimeStamp == 0L) {
             _currentTime.emit(0L)
             return
