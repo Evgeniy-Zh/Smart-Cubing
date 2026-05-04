@@ -118,14 +118,16 @@ class BleScanner(private val context: Context) : IBleScanner {
                             newState: Int
                         ) {
 
-                            if (status != BluetoothGatt.GATT_SUCCESS) {
-                                connectionStateChanges.tryEmit(
-                                    ConnectionStateChange(
-                                        deviceAddress = device.address,
-                                        state = ConnectionState.CONNECTION_FAILED
+                            if (continuation.isActive) {
+                                if (status != BluetoothGatt.GATT_SUCCESS) {
+                                    connectionStateChanges.tryEmit(
+                                        ConnectionStateChange(
+                                            deviceAddress = device.address,
+                                            state = ConnectionState.CONNECTION_FAILED
+                                        )
                                     )
-                                )
-                                continuation.resumeWithException(Exception("Failed to connect to device: $device"))
+                                    continuation.resumeWithException(Exception("Failed to connect to device: $device"))
+                                }
                             }
 
                             val address = gatt.device.address
@@ -184,7 +186,8 @@ class BleScanner(private val context: Context) : IBleScanner {
                                         state = ConnectionState.SERVICES_DISCOVERED
                                     )
                                 )
-                                continuation.resumeWith(Result.success(Unit))
+                                if(continuation.isActive)
+                                    continuation.resumeWith(Result.success(Unit))
                             }
                         }
 
