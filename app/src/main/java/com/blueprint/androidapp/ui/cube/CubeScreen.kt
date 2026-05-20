@@ -144,6 +144,7 @@ fun CubeScreen(
                     val themedContext = ContextThemeWrapper(context, R.style.AnimCubeDark)
                     AnimCube(themedContext)
                         .apply {
+                            setDebuggable(true)
                             setSingleRotationSpeed(3)
                             setDoubleRotationSpeed(3)
                             if (state.connectionState == ConnectionState.Disconnected) setCubeModel(
@@ -155,10 +156,11 @@ fun CubeScreen(
                         .also { cubeView = it }
                 },
                 update = { view -> },
-                onRelease = {
+                onRelease = { view ->
+                    view.cleanUpResources()
+                    bundle = view.saveState() ?: Bundle()
                     animCubeViewSolverNode.cubeView = null
-                    bundle = it.saveState() ?: Bundle()
-                }
+                },
             )
 
             if (maxWidth > 400.dp) {

@@ -37,7 +37,6 @@ class AnimCubeViewSolverNode : CubeSolverNode {
 
     suspend fun onAnimationEnded() {
         if (!applied) return
-        Log.d("AnimCubeViewSolverNode", "Animation ended, checking if cube is solved")
         channel.emit(Unit)
     }
 }

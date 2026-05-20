@@ -19,7 +19,11 @@ private suspend fun AnimCube.animateMoveAsync(move: String) {
         setMoveSequence(move)
         animateMoveSequence()
         setOnAnimationFinishedListener {
-            continuation.resume(Unit)
+            if (continuation.isActive)
+                continuation.resume(Unit)
+        }
+        continuation.invokeOnCancellation {
+            setOnAnimationFinishedListener(null)
         }
     }
 }
