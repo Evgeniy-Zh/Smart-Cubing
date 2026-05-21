@@ -5,6 +5,7 @@ import com.blueprint.cubing.core.format.format
 import com.blueprint.cubing.core.format.formatTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.ensureActive
 import kotlinx.coroutines.flow.Flow
@@ -26,9 +27,12 @@ class CubeTimer(
     var startTimeStamp = 0L
     var endTimeStamp = 0L
 
-    private var timerJob: kotlinx.coroutines.Job? = null
+    private var timerJob: Job? = null
 
-    fun start(coroutineScope: CoroutineScope) {
+    private var speed = 1f
+
+    fun start(coroutineScope: CoroutineScope, speed: Float = 1f) {
+        this.speed = speed
         startTimeStamp = getSysTimeStamp()
         timerJob = coroutineScope.launch(Dispatchers.Default) {
             while (true) {
@@ -67,7 +71,7 @@ class CubeTimer(
             _currentTime.emit(0L)
             return
         }
-        val elapsed = end - startTimeStamp
+        val elapsed = ((end - startTimeStamp) * speed).toLong()
         _currentTime.emit(elapsed)
     }
 
