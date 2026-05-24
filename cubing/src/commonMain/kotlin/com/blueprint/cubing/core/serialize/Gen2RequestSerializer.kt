@@ -3,6 +3,7 @@ package com.blueprint.cubing.core.serialize
 import com.blueprint.bleapi.model.BtDevice
 import com.blueprint.cubing.core.crypto.GanCubeEncrypterImpl
 import com.blueprint.cubing.core.crypto.GAN_ENCRYPTION_KEYS
+import com.blueprint.cubing.core.crypto.GanCubeEncrypter
 import com.blueprint.cubing.core.model.CubeRequest
 import com.blueprint.cubing.core.serialize.base.RequestSerializer
 
@@ -11,7 +12,7 @@ class Gen2RequestSerializer(val btDevice: BtDevice): RequestSerializer {
 
     private val macAddress = btDevice.address
 
-    private val encrypter: GanCubeEncrypterImpl by lazy {
+    private val encrypter: GanCubeEncrypter by lazy {
         createEcrypter()
     }
 
@@ -52,7 +53,7 @@ class Gen2RequestSerializer(val btDevice: BtDevice): RequestSerializer {
         return msg
     }
 
-    private fun createEcrypter(): GanCubeEncrypterImpl {
+    private fun createEcrypter(): GanCubeEncrypter {
         val key = GAN_ENCRYPTION_KEYS[0].key.map { it.toByte() }.toByteArray()
         val iv = GAN_ENCRYPTION_KEYS[0].iv.map { it.toByte() }.toByteArray()
 

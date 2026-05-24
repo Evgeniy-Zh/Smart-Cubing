@@ -18,12 +18,12 @@ fun Long.formatTime(format :TimeFormat): String {
         }
         if(pattern.contains("ss")) {
             val seconds = (time % 60000) / 1000
-            append(":")
+            if (this.isNotEmpty()) append(":")
             append(seconds.format(2))
         }
         if(pattern.contains("SSS")) {
             val milliseconds = time % 1000
-            append(":")
+            if (this.isNotEmpty()) append(":")
             append(milliseconds.format(3))
         }
 
