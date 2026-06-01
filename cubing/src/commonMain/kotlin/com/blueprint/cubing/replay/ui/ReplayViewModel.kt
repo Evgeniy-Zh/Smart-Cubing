@@ -17,6 +17,7 @@ import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
+import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -32,7 +33,7 @@ class ReplayViewModel(
         object Play : Action
         object Pause : Action
         object Stop : Action
-        data class SetSpeed(val speed: Float) : Action
+        data class SetSpeed(val speed: Speed) : Action
         data class DeleteReplay(val replay: Replay) : Action
     }
 
@@ -43,6 +44,12 @@ class ReplayViewModel(
         val isLoading: Boolean = false,
         val errorMessage: String? = null,
     )
+
+    enum class Speed(val multiplier: Float) {
+        SLOW(0.5f),
+        NORMAL(1f),
+        FAST(2f)
+    }
 
     private val _replayListState = MutableStateFlow<List<Replay>>(emptyList())
     private val _isLoadingState = MutableStateFlow(false)
@@ -66,11 +73,12 @@ class ReplayViewModel(
             isLoading = isLoading,
             errorMessage = error
         )
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5_000),
-        initialValue = State()
-    )
+    }.onStart { loadReplays() }
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5_000),
+            initialValue = State()
+        )
 
     fun handleAction(action: Action) {
         when (action) {
@@ -79,7 +87,7 @@ class ReplayViewModel(
             Action.Play -> play()
             Action.Pause -> pause()
             Action.Stop -> stop()
-            is Action.SetSpeed -> setSpeed(action.speed)
+            is Action.SetSpeed -> setSpeed(action.speed.multiplier)
             is Action.DeleteReplay -> deleteReplay(action.replay)
         }
     }

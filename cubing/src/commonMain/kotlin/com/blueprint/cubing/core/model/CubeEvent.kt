@@ -7,7 +7,7 @@ sealed class CubeEvent {
         val cubeTimeStamp: Long = 0,
         val systemTimeStamp: Long = 0
     ) : CubeEvent()
-    data class Solved(val totalTime: Long? = null) : CubeEvent()
+    data class Solved(val solveSummary: SolveSummary? = null) : CubeEvent()
     data class CubeStateUpdated(
         val state: CubePermState,
         val kociembaState: String,

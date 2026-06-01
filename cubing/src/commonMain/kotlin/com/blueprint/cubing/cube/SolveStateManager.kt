@@ -9,16 +9,14 @@ import com.blueprint.cubing.cube.timer.CubeTimer
 import com.blueprint.cubing.log.Logger
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.flow.onCompletion
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
 
 class SolveStateManager(
     private val solveStartNotifier: SolveStartNotifier,
+    private val solveSaver: SolveSaver,
 ) {
 
     interface WithTime {
@@ -116,11 +114,17 @@ class SolveStateManager(
         if (state.value is SolveState.Solving) {
             solveTimer.stop()
 
-            val time = event.totalTime?.formatTime(TimeFormat.SOLVING)
-                ?: solveTimer.getTotalTimeFormatted()
-            Logger.log("SolveStateManager","Measured time: ${event.totalTime?.formatTime(TimeFormat.SOLVING)}")
-            Logger.log("SolveStateManager","Timer time: ${solveTimer.getTotalTimeFormatted()}")
-            _state.emit(SolveState.Solved(time = time))
+            val uiTime = solveTimer.getTotalTimeFormatted()
+            val measuredTime = event.solveSummary?.totalTime?.formatTime(TimeFormat.SOLVING)
+            val resultTime = measuredTime ?: uiTime
+
+            if(event.solveSummary != null) {
+                solveSaver.saveSuccessfulSolve(resultTime,event.solveSummary)
+            }
+
+            Logger.log("SolveStateManager","Measured time: $measuredTime")
+            Logger.log("SolveStateManager","Timer time: $uiTime")
+            _state.emit(SolveState.Solved(time = resultTime))
         } else {
             _state.emit(SolveState.Idle)
         }
