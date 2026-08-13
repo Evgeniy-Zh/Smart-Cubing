@@ -15,6 +15,8 @@ import com.blueprint.cubing.di.commonMainModule
 import com.blueprint.cubing.navigation.AppNavigator
 import com.blueprint.cubing.navigation.AppNavigatorCommonImpl
 import com.blueprint.cubing.navigation.NavigationEventHandler
+import com.blueprint.cubing.replay.data.persistence.ReplayDB
+import com.blueprint.cubing.replay.data.persistence.getReplayDatabase
 import com.blueprint.desktopapp.impl.CubeSolverImpl
 import kotlinx.coroutines.flow.Flow
 import org.koin.core.module.dsl.viewModelOf
@@ -40,6 +42,7 @@ val appModule = module {
     }
 
     single<CubeDeviceDB> { getCubeDatabase() }
+    single<ReplayDB> { getReplayDatabase() }
 
     viewModelOf(::CubeViewModel)
     viewModelOf(::SearchDeviceViewModel)

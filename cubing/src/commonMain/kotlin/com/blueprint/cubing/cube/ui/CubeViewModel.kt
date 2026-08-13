@@ -11,6 +11,8 @@ import com.blueprint.cubing.cube.SolveStateManager
 import com.blueprint.cubing.device.list.CubeListRepository
 import com.blueprint.cubing.navigation.AppNavigator
 import com.blueprint.cubing.navigation.SearchDevicesRoute
+import com.blueprint.cubing.replay.ReplayHistoryRepository
+import com.blueprint.cubing.replay.model.Replay
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -21,6 +23,7 @@ import kotlinx.coroutines.launch
 
 class CubeViewModel(
     private val cubeListRepository: CubeListRepository,
+    private val replayRepository: ReplayHistoryRepository,
     private val cubeStateManager: CubeStateManager,
     private val solveStateManager: SolveStateManager,
     private val appNavigator: AppNavigator,
@@ -37,6 +40,7 @@ class CubeViewModel(
 
     data class State(
         val cubeDevices: List<CubeDevice> = emptyList(),
+        val replayHistory: List<Replay> = emptyList(),
         val activeDevice: CubeDevice? = null,
         val connectionState: ConnectionState,
         val solveState: SolveStateManager.SolveState,
@@ -57,13 +61,15 @@ class CubeViewModel(
         cubeStateManager.connectionState,
         solveStateManager.state,
         cubeListRepository.observeActiveDevice(),
-        cubeListRepository.observeDevices()
-    ) { connectionState, solveState, activeDevice, devices ->
+        cubeListRepository.observeDevices(),
+        replayRepository.observeReplayList(ReplayHistoryRepository.PagingParams.Latest(5))
+    ) { connectionState, solveState, activeDevice, devices, replays ->
         State(
             cubeDevices = devices,
             activeDevice = activeDevice,
             connectionState = connectionState,
-            solveState = solveState
+            solveState = solveState,
+            replayHistory = replays,
         )
     }.stateIn(
         scope = viewModelScope,

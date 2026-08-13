@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 // ...existing code...
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.shape.CircleShape
@@ -47,6 +48,8 @@ import com.blueprint.cubing.cube.ui.CubeViewModel
 import com.blueprint.cubing.core.model.ConnectionState
 import com.blueprint.cubing.core.model.CubeDevice
 import com.blueprint.cubing.cube.SolveStateManager
+import com.blueprint.cubing.replay.model.Replay
+import com.blueprint.cubing.replay.ui.SolveHistoryList
 
 var TimerFontFamily: FontFamily = FontFamily.Monospace
 
@@ -67,6 +70,7 @@ fun CubeOverlay(
         connectionState = connectionState,
         solveState = solveState,
         cubeList = cubeList,
+        replayHistory = state.replayHistory,
         activeDevice = activeDevice,
         onAction = onAction,
         mainButtonFocusRequester = mainButtonFocusRequester,
@@ -79,6 +83,7 @@ fun CubeOverlayContent(
     connectionState: ConnectionState,
     solveState: SolveStateManager.SolveState,
     cubeList: List<CubeDevice>,
+    replayHistory: List<Replay>,
     activeDevice: CubeDevice?,
     onAction: (CubeViewModel.Action) -> Unit,
     mainButtonFocusRequester: FocusRequester? = null,
@@ -143,6 +148,7 @@ fun CubeOverlayContent(
             onAction = onAction,
         )
         // Middle: intentionally left empty; cube will be visible underneath this overlay.
+
 
         // Bottom: timer, solve state and action button
         Box(
@@ -216,6 +222,14 @@ fun CubeOverlayContent(
                     .padding(8.dp),
                 imageVector = Icons.Default.Search,
                 contentDescription = "Search"
+            )
+
+            SolveHistoryList(
+                modifier = Modifier
+                    .align(Alignment.BottomStart)
+                    .heightIn(max = 100.dp)
+                        ,
+                replays = replayHistory
             )
 
         }

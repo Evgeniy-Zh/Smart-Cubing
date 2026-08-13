@@ -42,10 +42,13 @@ class ReplayHistoryRepositoryImpl(
 
     override suspend fun createNewReplayFromRawData(rawData: ByteArray) {
         val replayId = Uuid.random().toString()
-        val replay = TODO() //TODO: parse raw data to get total time and status
+        //TODO: parse raw data to get total time and status
+        val replay = TODO()
+        val summary = TODO()
+        val rawData = TODO()
 
-        replayDB.replayDao().insertReplay(replay.toEntity())
-        replayDB.replayRawDataDao().insertRawData(TODO())
+        replayDB.replayDao().insertReplay(toEntity(replay, summary))
+        replayDB.replayRawDataDao().insertRawData(rawData)
     }
 
     override suspend fun createNewReplay(
@@ -60,13 +63,13 @@ class ReplayHistoryRepositoryImpl(
             note = note ?: "",
         )
 
-        replayDB.replayDao().insertReplay(replay.toEntity())
+        replayDB.replayDao().insertReplay(toEntity(replay, solveSummary))
 
-        if (solveSummary.replayRawData != null && solveSummary.kociembaInitState != null) {
+        if (solveSummary.replayData != null && solveSummary.kociembaInitState != null) {
             val entity = ReplayRawDataEntity(
                 replayId = replayId,
                 kociembaInitState = solveSummary.kociembaInitState,
-                rawData = solveSummary.replayRawData.toByteArray(),
+                rawData = ByteArray(0), //TODO: map moves
             )
             replayDB.replayRawDataDao().insertRawData(entity)
         }

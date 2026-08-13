@@ -27,7 +27,7 @@ data class ReplayRawDataEntity(
     @PrimaryKey
     val replayId: String,
     val kociembaInitState: String,
-    val rawData: ByteArray,
+    val rawData: ByteArray, //TODO: add table for moves
 ) {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

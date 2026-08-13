@@ -6,7 +6,7 @@ data class SolveSummary(
     val totalTime: Long,
     val date: LocalDateTime,
     val status: Status,
-    val replayRawData: List<Byte>? = null,
+    val replayData: ReplayData? = null,
     val kociembaInitState: String? = null
 ) {
 
@@ -14,4 +14,13 @@ data class SolveSummary(
         SOLVED, DNF, GAVE_UP,
     }
 
+}
+
+data class ReplayData(
+    val moves: List<ReplayData.Move>,
+) {
+    data class Move(
+        val moveSequence: String,
+        val elapsed: Long = 0,
+    )
 }

@@ -4,9 +4,8 @@ import com.blueprint.cubing.core.model.SolveSummary
 import com.blueprint.cubing.replay.data.persistence.ReplayEntity
 import com.blueprint.cubing.replay.model.Replay
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.toInstant
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
 fun ReplayEntity.toDomainModel(): Replay = Replay(
@@ -15,13 +14,18 @@ fun ReplayEntity.toDomainModel(): Replay = Replay(
     note = note,
 )
 
-fun Replay.toEntity(): ReplayEntity = ReplayEntity(
-    id = id,
-    name = name,
-    note = note,
-    dateTimestamp = solveSummary.date.nanosecond / 1000L,
-    totalTime = solveSummary.totalTime,
-    status = solveSummary.status.name,
-)
+@OptIn(ExperimentalTime::class)
+fun toEntity(replay: Replay, solveSummary: SolveSummary): ReplayEntity {
+    val millis = solveSummary.date.toInstant(timeZone = TimeZone.currentSystemDefault()).toEpochMilliseconds()
+
+    return ReplayEntity(
+        id = replay.id,
+        name = replay.name,
+        note = replay.note,
+        dateTimestamp = millis,
+        totalTime = solveSummary.totalTime,
+        status = solveSummary.status.name,
+    )
+}
 
 

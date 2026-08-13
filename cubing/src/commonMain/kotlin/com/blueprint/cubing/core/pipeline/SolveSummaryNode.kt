@@ -1,6 +1,7 @@
 package com.blueprint.cubing.core.pipeline
 
 import com.blueprint.cubing.core.model.CubeEvent
+import com.blueprint.cubing.core.model.SolveSummary
 import com.blueprint.cubing.core.pipeline.base.PipelineNode
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -10,14 +11,18 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.onCompletion
 import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.launch
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 @OptIn(ExperimentalTime::class)
 class SolveSummaryNode(
     private val getSysTimeStamp: () -> Long = { Clock.System.now().toEpochMilliseconds() },
+    private val getCurrentDateTime: () -> LocalDateTime = { Clock.System.now().toLocalDateTime(TimeZone.UTC) },
     private val solveStartEvents: SolveStartEvents,
-): PipelineNode<CubeEvent, CubeEvent> {
+) : PipelineNode<CubeEvent, CubeEvent> {
 
     private val scope = CoroutineScope(Dispatchers.Main.immediate)
     private var eventObserverJob: Job? = null
@@ -32,10 +37,10 @@ class SolveSummaryNode(
             inputFlow.collect { event ->
                 var updatedEvent = event
 
-                if(event is CubeEvent.Move) {
+                if (event is CubeEvent.Move) {
                     onEvent(event)
                 }
-                if(event is CubeEvent.Solved) {
+                if (event is CubeEvent.Solved) {
                     updatedEvent = addSummary(event)
                     reset()
                 }
@@ -52,7 +57,7 @@ class SolveSummaryNode(
     }
 
     /**
-    *  if a solve is triggered by a move, the method is called after the move is made.
+     *  if a solve is triggered by a move, the method is called after the move is made.
      */
     private fun onSolveStart(firstMoveTimeStamp: Long?) {
         reset()
@@ -65,10 +70,10 @@ class SolveSummaryNode(
 
 
     private fun onEvent(event: CubeEvent.Move) {
-        if(cubeStartTime == null && systemStartTime == null) {
+        if (cubeStartTime == null && systemStartTime == null) {
             return
         }
-        if(totalTime == 0L) {
+        if (totalTime == 0L) {
             if (cubeStartTime == null) { // if not triggered by a move, calculate elapsed time using system time
                 totalTime = event.systemTimeStamp - systemStartTime!!
             } else { // if triggered by a move, use elapsed cube time
@@ -80,7 +85,14 @@ class SolveSummaryNode(
     }
 
     private fun addSummary(event: CubeEvent.Solved): CubeEvent.Solved {
-        return event.copy(totalTime = totalTime)
+        val solveSummary = SolveSummary(
+            totalTime = totalTime,
+            date = getCurrentDateTime(),
+            status = SolveSummary.Status.SOLVED,
+            //TODO: add all the data of the solve
+        )
+
+        return event.copy(solveSummary = solveSummary)
     }
 
     private fun reset() {
