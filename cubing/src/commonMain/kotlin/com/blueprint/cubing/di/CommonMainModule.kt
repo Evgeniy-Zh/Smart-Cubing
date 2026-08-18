@@ -1,7 +1,7 @@
 package com.blueprint.cubing.di
 
-import com.blueprint.cubing.core.pipeline.SolveStartEvents
-import com.blueprint.cubing.core.pipeline.SolveStartNotifier
+import com.blueprint.cubing.core.pipeline.SolveEvents
+import com.blueprint.cubing.core.pipeline.SolveNotifier
 import com.blueprint.cubing.core.pipeline.SolveSummaryNode
 import com.blueprint.cubing.cube.CubeRepository
 import com.blueprint.cubing.cube.CubeStateManager
@@ -12,8 +12,6 @@ import com.blueprint.cubing.cube.data.CubeRepositoryImpl
 import com.blueprint.cubing.device.list.CubeListRepository
 import com.blueprint.cubing.device.list.SupportedDevices
 import com.blueprint.cubing.device.list.data.CubeListRepositoryImpl
-import com.blueprint.cubing.device.list.data.persistence.CubeDeviceDB
-import com.blueprint.cubing.device.list.data.persistence.getCubeDatabase
 import com.blueprint.cubing.navigation.AppNavigator
 import com.blueprint.cubing.navigation.AppNavigatorCommonImpl
 import com.blueprint.cubing.navigation.NavigationEventHandler
@@ -30,12 +28,12 @@ val commonMainModule = module {
 //    single<CubeStateRepository> { FakeCubeStateRepository() }
 
     single { PipelineProvider(cubeSolverNode = get(), uiMapperNode = get(), solveSummaryNode = get()) }
-    single { SolveStateManager(solveStartNotifier = get(), solveSaver = get()) }
+    single { SolveStateManager(solveNotifier = get(), solveSaver = get(), cubeStateProvider = get()) }
     single<CubeListRepository> { CubeListRepositoryImpl(cubeDeviceDB = get()) }
     single { CubeStateManager(cubeRepository = get(), cubeListRepository = get()) }
     single { SupportedDevices() }
-    single { SolveStartNotifier() } binds arrayOf(SolveStartNotifier::class, SolveStartEvents::class)
-    single { SolveSummaryNode(solveStartEvents = get()) }
+    single { SolveNotifier() } binds arrayOf(SolveNotifier::class, SolveEvents::class)
+    single { SolveSummaryNode(solveEvents = get()) }
 
     //replay
     single<ReplayHistoryRepository> { ReplayHistoryRepositoryImpl(replayDB = get()) }

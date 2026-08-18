@@ -1,6 +1,7 @@
 package com.blueprint.cubing.core.pipeline
 
 import com.blueprint.cubing.core.model.CubeEvent
+import com.blueprint.cubing.core.model.ReplayData
 import com.blueprint.cubing.core.model.SolveSummary
 import com.blueprint.cubing.core.pipeline.base.PipelineNode
 import kotlinx.coroutines.CoroutineScope
@@ -21,7 +22,7 @@ import kotlin.time.ExperimentalTime
 class SolveSummaryNode(
     private val getSysTimeStamp: () -> Long = { Clock.System.now().toEpochMilliseconds() },
     private val getCurrentDateTime: () -> LocalDateTime = { Clock.System.now().toLocalDateTime(TimeZone.UTC) },
-    private val solveStartEvents: SolveStartEvents,
+    private val solveEvents: SolveEvents,
 ) : PipelineNode<CubeEvent, CubeEvent> {
 
     private val scope = CoroutineScope(Dispatchers.Main.immediate)
@@ -31,6 +32,8 @@ class SolveSummaryNode(
     private var cubeStartTime: Long? = null
 
     private var totalTime: Long = 0
+    private val moves: MutableList<ReplayData.Move> = mutableListOf()
+    private var initialState: String? = null
 
     override suspend fun apply(inputFlow: Flow<CubeEvent>): Flow<CubeEvent> {
         return flow {
@@ -49,8 +52,12 @@ class SolveSummaryNode(
             }
         }.onStart {
             eventObserverJob = scope.launch {
-                solveStartEvents.eventFlow.collect { data ->
-                    onSolveStart(data.firstMoveTimeStamp)
+                solveEvents.eventFlow.collect { event ->
+                    when (event) {
+                        is SolveEvents.Event.SolveStart -> onSolveStart(event.firstMove)
+                        is SolveEvents.Event.InspectionStart -> onInspectionStart(event.cubeKociembaState)
+                        is SolveEvents.Event.GiveUp -> {}
+                    }
                 }
             }
         }.onCompletion { eventObserverJob?.cancel() }
@@ -59,8 +66,14 @@ class SolveSummaryNode(
     /**
      *  if a solve is triggered by a move, the method is called after the move is made.
      */
-    private fun onSolveStart(firstMoveTimeStamp: Long?) {
+    private fun onSolveStart(firstMove: CubeEvent.Move?) {
         reset()
+
+        firstMove?.let {
+            moves.add(ReplayData.Move(moveSequence = it.moveSequence, elapsed = 0))
+        }
+        val firstMoveTimeStamp = firstMove?.systemTimeStamp
+
         if (firstMoveTimeStamp != null) {
             cubeStartTime = firstMoveTimeStamp
         } else {
@@ -68,13 +81,20 @@ class SolveSummaryNode(
         }
     }
 
+    private fun onInspectionStart(state: String) {
+        initialState = state
+    }
+
 
     private fun onEvent(event: CubeEvent.Move) {
-        if (cubeStartTime == null && systemStartTime == null) {
+        if (cubeStartTime == null && systemStartTime == null) { // if the solve is not started, ignore the move event
             return
         }
+        moves.add(ReplayData.Move(moveSequence = event.moveSequence, elapsed = event.elapsed))
+
         if (totalTime == 0L) {
             if (cubeStartTime == null) { // if not triggered by a move, calculate elapsed time using system time
+                //TODO: add the time passed before the first move to Summaryop
                 totalTime = event.systemTimeStamp - systemStartTime!!
             } else { // if triggered by a move, use elapsed cube time
                 totalTime = event.elapsed
@@ -89,7 +109,8 @@ class SolveSummaryNode(
             totalTime = totalTime,
             date = getCurrentDateTime(),
             status = SolveSummary.Status.SOLVED,
-            //TODO: add all the data of the solve
+            replayData = ReplayData(moves = moves.toList()),
+            kociembaInitState = initialState
         )
 
         return event.copy(solveSummary = solveSummary)
@@ -99,6 +120,8 @@ class SolveSummaryNode(
         systemStartTime = null
         cubeStartTime = null
         totalTime = 0
+        initialState = null
+        moves.clear()
     }
 
 }

@@ -2,9 +2,10 @@ package com.blueprint.cubing.cube
 
 import com.blueprint.cubing.core.format.TimeFormat
 import com.blueprint.cubing.core.format.formatTime
+import com.blueprint.cubing.core.logic.CubeStateProvider
 import com.blueprint.cubing.core.model.CubeEvent
-import com.blueprint.cubing.core.pipeline.SolveStartEvents
-import com.blueprint.cubing.core.pipeline.SolveStartNotifier
+import com.blueprint.cubing.core.pipeline.SolveEvents
+import com.blueprint.cubing.core.pipeline.SolveNotifier
 import com.blueprint.cubing.cube.timer.CubeTimer
 import com.blueprint.cubing.log.Logger
 import kotlinx.coroutines.CoroutineScope
@@ -15,8 +16,9 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 class SolveStateManager(
-    private val solveStartNotifier: SolveStartNotifier,
+    private val solveNotifier: SolveNotifier,
     private val solveSaver: SolveSaver,
+    private val cubeStateProvider: CubeStateProvider
 ) {
 
     interface WithTime {
@@ -73,6 +75,7 @@ class SolveStateManager(
 
     private fun inspect() {
         if (state.value is SolveState.Solved) return
+        solveNotifier.notify(SolveEvents.Event.InspectionStart(cubeStateProvider.getKociembaState()))
         coroutineScope.launch {
             _state.emit(SolveState.Inspecting("__"))
         }
@@ -81,7 +84,7 @@ class SolveStateManager(
     private fun start(move: CubeEvent.Move?) {
         solveTimer.reset()
         solveTimer.start(coroutineScope)
-        sendSolveStartedEvent(move)
+        solveNotifier.notify(SolveEvents.Event.SolveStart(firstMove = move))
         coroutineScope.launch {
             solveTimer.currentTime.collectLatest {
                 _state.emit(SolveState.Solving(it))
@@ -90,6 +93,7 @@ class SolveStateManager(
     }
 
     private fun giveUp() {
+        solveNotifier.notify(SolveEvents.Event.GiveUp)
         coroutineScope.launch {
             solveTimer.stop()
             _state.emit(SolveState.Idle)
@@ -128,11 +132,6 @@ class SolveStateManager(
         } else {
             _state.emit(SolveState.Idle)
         }
-    }
-
-    private fun sendSolveStartedEvent(move: CubeEvent.Move?) {
-        val timeStamp = move?.systemTimeStamp
-        solveStartNotifier.notifySolveStart(SolveStartEvents.EventData(firstMoveTimeStamp = timeStamp))
     }
 
 }

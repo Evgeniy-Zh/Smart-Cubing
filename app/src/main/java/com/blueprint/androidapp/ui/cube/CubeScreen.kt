@@ -32,9 +32,11 @@ import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.flowWithLifecycle
 import com.blueprint.androidapp.R
 import com.blueprint.androidapp.impl.AnimCubeViewSolverNode
+import com.blueprint.androidapp.impl.CubeStateProviderImpl
 import com.blueprint.androidapp.ui.cube.ext.animateSequenceAsync
 import com.blueprint.androidapp.ui.cube.ext.disconnectedCubeState
 import com.blueprint.androidapp.ui.cube.mapper.ANIM_CUBE_STATE
+import com.blueprint.cubing.core.logic.CubeStateProvider
 import com.blueprint.cubing.core.model.ConnectionState
 import com.blueprint.cubing.core.model.CubeEvent
 import com.blueprint.cubing.core.pipeline.CubeSolverNode
@@ -53,9 +55,11 @@ import org.koin.compose.koinInject
 fun CubeScreen(
     modifier: Modifier = Modifier,
     animCubeViewSolverNode: CubeSolverNode = koinInject(),
+    cubeStateProvider: CubeStateProvider = koinInject(),
     cubeViewModel: CubeViewModel = koinViewModel(),
 ) {
     animCubeViewSolverNode as AnimCubeViewSolverNode
+    cubeStateProvider as CubeStateProviderImpl
     val activity = LocalActivity.current
     DisposableEffect(Unit) {
         val window = activity?.window
@@ -71,6 +75,13 @@ fun CubeScreen(
     val context = LocalContext.current
 
     val cube2DState = rememberCube2DState()
+
+    DisposableEffect(Unit) {
+        cubeStateProvider.cube2dState2d = cube2DState
+        onDispose {
+            cubeStateProvider.cube2dState2d = null
+        }
+    }
 
     LaunchedEffect(Unit) {
         launch(Dispatchers.Main) {

@@ -1,6 +1,5 @@
 package com.blueprint.androidapp.impl
 
-import android.util.Log
 import com.blueprint.androidapp.ui.cube.ext.isSolved
 import com.blueprint.cubing.core.model.CubeEvent
 import com.blueprint.cubing.core.pipeline.CubeSolverNode

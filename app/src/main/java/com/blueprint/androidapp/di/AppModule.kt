@@ -5,8 +5,10 @@ import com.blueprint.androidapp.bluetooth.BlePeripheral
 import com.blueprint.androidapp.bluetooth.ConnectionManager
 import com.blueprint.androidapp.impl.AnimCubeViewSolverNode
 import com.blueprint.androidapp.impl.BleScanner
+import com.blueprint.androidapp.impl.CubeStateProviderImpl
 import com.blueprint.androidapp.ui.cube.mapper.UiMapperNodeImpl
 import com.blueprint.bleapi.IBleScanner
+import com.blueprint.cubing.core.logic.CubeStateProvider
 import com.blueprint.cubing.core.pipeline.CubeSolverNode
 import com.blueprint.cubing.core.pipeline.UiMapperNode
 import com.blueprint.cubing.cube.ui.CubeViewModel
@@ -32,6 +34,7 @@ val appModule = module {
 
     single<CubeSolverNode> { AnimCubeViewSolverNode() }
     single { UiMapperNodeImpl() } binds arrayOf(UiMapperNode::class)
+    single <CubeStateProvider> { CubeStateProviderImpl() }
 
     single<CubeDeviceDB> { getCubeDatabase(args = get<Context>()) }
     single<ReplayDB> { getReplayDatabase(args = get<Context>()) }
