@@ -1,7 +1,7 @@
 package com.blueprint.cubing.persistance
 
 import com.blueprint.cubing.replay.data.persistence.ReplayDB
-import com.blueprint.cubing.replay.data.persistence.ReplayDatabaseConstructor
+import com.blueprint.cubing.replay.data.persistence.ReplayDB_Impl
 import kotlin.test.BeforeTest
 
 class SolveDbTest {
@@ -10,7 +10,7 @@ class SolveDbTest {
 
     @BeforeTest
     fun setUp() {
-        db = ReplayDatabaseConstructor.initialize()
+        db = ReplayDB_Impl()
     }
 
     @kotlin.test.AfterTest
