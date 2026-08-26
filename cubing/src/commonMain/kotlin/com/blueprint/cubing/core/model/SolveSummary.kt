@@ -7,7 +7,6 @@ data class SolveSummary(
     val date: LocalDateTime,
     val status: Status,
     val replayData: ReplayData? = null,
-    val kociembaInitState: String? = null
 ) {
 
     enum class Status {
@@ -17,6 +16,7 @@ data class SolveSummary(
 }
 
 data class ReplayData(
+    val kociembaInitState: String,
     val moves: List<ReplayData.Move>,
 ) {
     data class Move(

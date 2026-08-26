@@ -18,8 +18,8 @@ import com.blueprint.cubing.device.list.data.persistence.getCubeDatabase
 import com.blueprint.cubing.device.search.DeviceDetailsViewModel
 import com.blueprint.cubing.device.search.SearchDeviceViewModel
 import com.blueprint.cubing.di.commonMainModule
-import com.blueprint.cubing.replay.data.persistence.ReplayDB
-import com.blueprint.cubing.replay.data.persistence.getReplayDatabase
+import com.blueprint.cubing.replay.data.persistence.SolveDB
+import com.blueprint.cubing.replay.data.persistence.getSolveDataBase
 import org.koin.androidx.viewmodel.dsl.viewModelOf
 import org.koin.dsl.binds
 import org.koin.dsl.module
@@ -37,7 +37,7 @@ val appModule = module {
     single <CubeStateProvider> { CubeStateProviderImpl() }
 
     single<CubeDeviceDB> { getCubeDatabase(args = get<Context>()) }
-    single<ReplayDB> { getReplayDatabase(args = get<Context>()) }
+    single<SolveDB> { getSolveDataBase(args = get<Context>()) }
 
     viewModelOf(::CubeViewModel)
     viewModelOf(::SearchDeviceViewModel)

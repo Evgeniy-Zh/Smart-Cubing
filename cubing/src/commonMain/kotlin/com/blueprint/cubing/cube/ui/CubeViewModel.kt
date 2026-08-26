@@ -11,8 +11,8 @@ import com.blueprint.cubing.cube.SolveStateManager
 import com.blueprint.cubing.device.list.CubeListRepository
 import com.blueprint.cubing.navigation.AppNavigator
 import com.blueprint.cubing.navigation.SearchDevicesRoute
-import com.blueprint.cubing.replay.ReplayHistoryRepository
-import com.blueprint.cubing.replay.model.Replay
+import com.blueprint.cubing.replay.SolveHistoryRepository
+import com.blueprint.cubing.replay.model.SolvePreview
 import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.combine
@@ -23,7 +23,7 @@ import kotlinx.coroutines.launch
 
 class CubeViewModel(
     private val cubeListRepository: CubeListRepository,
-    private val replayRepository: ReplayHistoryRepository,
+    private val solveHistoryRepository: SolveHistoryRepository,
     private val cubeStateManager: CubeStateManager,
     private val solveStateManager: SolveStateManager,
     private val appNavigator: AppNavigator,
@@ -40,7 +40,7 @@ class CubeViewModel(
 
     data class State(
         val cubeDevices: List<CubeDevice> = emptyList(),
-        val replayHistory: List<Replay> = emptyList(),
+        val solveHistory: List<SolvePreview> = emptyList(),
         val activeDevice: CubeDevice? = null,
         val connectionState: ConnectionState,
         val solveState: SolveStateManager.SolveState,
@@ -62,14 +62,14 @@ class CubeViewModel(
         solveStateManager.state,
         cubeListRepository.observeActiveDevice(),
         cubeListRepository.observeDevices(),
-        replayRepository.observeReplayList(ReplayHistoryRepository.PagingParams.Latest(5))
-    ) { connectionState, solveState, activeDevice, devices, replays ->
+        solveHistoryRepository.observeSolveList(SolveHistoryRepository.PagingParams.Latest(5))
+    ) { connectionState, solveState, activeDevice, devices, solvePreviews ->
         State(
             cubeDevices = devices,
             activeDevice = activeDevice,
             connectionState = connectionState,
             solveState = solveState,
-            replayHistory = replays,
+            solveHistory = solvePreviews,
         )
     }.stateIn(
         scope = viewModelScope,

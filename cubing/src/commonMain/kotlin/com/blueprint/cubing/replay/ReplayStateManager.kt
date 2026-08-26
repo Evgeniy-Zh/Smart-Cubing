@@ -4,7 +4,7 @@ import com.blueprint.cubing.core.format.TimeFormat
 import com.blueprint.cubing.core.model.CubeEvent
 import com.blueprint.cubing.cube.timer.CubeTimer
 import com.blueprint.cubing.replay.model.PlayingState
-import com.blueprint.cubing.replay.model.Replay
+import com.blueprint.cubing.replay.model.SolvePreview
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
@@ -50,7 +50,7 @@ class ReplayStateManager(
         }
     }
 
-    fun setReplay(replay: Replay) {
+    fun setReplay(replay: SolvePreview) {
         currentReplayId.value = replay.id
     }
 

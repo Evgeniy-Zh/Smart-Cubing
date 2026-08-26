@@ -1,7 +1,7 @@
 package com.blueprint.cubing.replay.model
 
 data class PlayingState(
-    val replayName: String,
+    val solveName: String,
     val time: String,
     val speed: Float,
     val status: Status,
@@ -14,7 +14,7 @@ data class PlayingState(
 
     companion object {
         val Default = PlayingState(
-            replayName = "",
+            solveName = "",
             time = "",
             speed = 1f,
             status = Status.STOPPED

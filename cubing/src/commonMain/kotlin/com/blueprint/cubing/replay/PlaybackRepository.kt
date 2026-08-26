@@ -5,6 +5,6 @@ import kotlinx.coroutines.flow.Flow
 
 interface PlaybackRepository {
 
-    fun replay(replayId: String): Flow<CubeEvent>
+    fun replay(solveId: String): Flow<CubeEvent>
 
 }

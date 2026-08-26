@@ -16,8 +16,8 @@ import com.blueprint.cubing.navigation.AppNavigator
 import com.blueprint.cubing.navigation.AppNavigatorCommonImpl
 import com.blueprint.cubing.navigation.NavigationEventHandler
 import com.blueprint.cubing.provider.PipelineProvider
-import com.blueprint.cubing.replay.ReplayHistoryRepository
-import com.blueprint.cubing.replay.data.ReplayHistoryRepositoryImpl
+import com.blueprint.cubing.replay.SolveHistoryRepository
+import com.blueprint.cubing.replay.data.SolveHistoryRepositoryImpl
 import org.koin.dsl.binds
 import org.koin.dsl.module
 
@@ -36,7 +36,7 @@ val commonMainModule = module {
     single { SolveSummaryNode(solveEvents = get()) }
 
     //replay
-    single<ReplayHistoryRepository> { ReplayHistoryRepositoryImpl(replayDB = get()) }
-    single<SolveSaver> { SolveSaverImpl(replayHistoryRepository = get()) }
+    single<SolveHistoryRepository> { SolveHistoryRepositoryImpl(solveDB = get()) }
+    single<SolveSaver> { SolveSaverImpl(solveHistoryRepository = get()) }
 
 }

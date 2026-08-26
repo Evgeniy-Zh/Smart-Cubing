@@ -67,7 +67,6 @@ class SolveSummaryNode(
      *  if a solve is triggered by a move, the method is called after the move is made.
      */
     private fun onSolveStart(firstMove: CubeEvent.Move?) {
-        reset()
 
         firstMove?.let {
             moves.add(ReplayData.Move(moveSequence = it.moveSequence, elapsed = 0))
@@ -109,8 +108,12 @@ class SolveSummaryNode(
             totalTime = totalTime,
             date = getCurrentDateTime(),
             status = SolveSummary.Status.SOLVED,
-            replayData = ReplayData(moves = moves.toList()),
-            kociembaInitState = initialState
+            replayData = initialState?.let {
+                ReplayData(
+                    kociembaInitState = it,
+                    moves = moves.toList()
+                )
+            },
         )
 
         return event.copy(solveSummary = solveSummary)

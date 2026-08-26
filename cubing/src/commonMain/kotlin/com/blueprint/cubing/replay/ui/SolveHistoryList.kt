@@ -7,26 +7,26 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
-import com.blueprint.cubing.replay.model.Replay
+import com.blueprint.cubing.replay.model.SolvePreview
 
 @Composable
 fun SolveHistoryList(
     modifier: Modifier = Modifier,
-    replays: List<Replay>,
+    solvePreviews: List<SolvePreview>,
 ) {
 
     val listState = rememberLazyListState()
-    LaunchedEffect(replays) {
+    LaunchedEffect(solvePreviews) {
         listState.scrollToItem(0) // Scroll to the top of the list
     }
     LazyColumn(modifier = modifier, state = listState) {
-        items(replays, key = { it.id }) { replay ->
-            SolveHistoryItem(replay)
+        items(solvePreviews, key = { it.id }) { solvePreview ->
+            SolveHistoryItem(solvePreview)
         }
     }
 }
 
 @Composable
-fun SolveHistoryItem(replay: Replay) {
-    Text(text = replay.name)
+fun SolveHistoryItem(solvePreview: SolvePreview) {
+    Text(text = solvePreview.name)
 }

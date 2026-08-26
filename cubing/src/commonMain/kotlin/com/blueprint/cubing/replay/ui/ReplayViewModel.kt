@@ -4,10 +4,10 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.blueprint.cubing.core.flow.shareSuspendingWhileNoSubs
 import com.blueprint.cubing.core.model.CubeEvent
-import com.blueprint.cubing.replay.ReplayHistoryRepository
+import com.blueprint.cubing.replay.SolveHistoryRepository
 import com.blueprint.cubing.replay.ReplayStateManager
 import com.blueprint.cubing.replay.model.PlayingState
-import com.blueprint.cubing.replay.model.Replay
+import com.blueprint.cubing.replay.model.SolvePreview
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
@@ -23,23 +23,23 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 class ReplayViewModel(
-    private val replayHistoryRepository: ReplayHistoryRepository,
+    private val solveHistoryRepository: SolveHistoryRepository,
     private val replayStateManager: ReplayStateManager,
 ) : ViewModel() {
 
     sealed interface Action {
-        object LoadReplays : Action
-        data class SelectReplay(val replay: Replay) : Action
+        object LoadSolvePreviews : Action
+        data class SelectSolve(val solvePreview: SolvePreview) : Action
         object Play : Action
         object Pause : Action
         object Stop : Action
         data class SetSpeed(val speed: Speed) : Action
-        data class DeleteReplay(val replay: Replay) : Action
+        data class DeleteSolve(val solvePreview: SolvePreview) : Action
     }
 
     data class State(
-        val replayList: ImmutableList<Replay> = persistentListOf(),
-        val selectedReplay: Replay? = null,
+        val solvePreviews: ImmutableList<SolvePreview> = persistentListOf(),
+        val selectedSolvePreview: SolvePreview? = null,
         val playingState: PlayingState = PlayingState.Default,
         val isLoading: Boolean = false,
         val errorMessage: String? = null,
@@ -51,29 +51,29 @@ class ReplayViewModel(
         FAST(2f)
     }
 
-    private val _replayListState = MutableStateFlow<List<Replay>>(emptyList())
+    private val solvePreviewListState = MutableStateFlow<List<SolvePreview>>(emptyList())
     private val _isLoadingState = MutableStateFlow(false)
     private val _errorState = MutableStateFlow<String?>(null)
-    private val _selectedReplayState = MutableStateFlow<Replay?>(null)
+    private val _selectedSolvePreviewState = MutableStateFlow<SolvePreview?>(null)
 
     val cubeEvents: SharedFlow<CubeEvent> = replayStateManager.observeCubeEvents()
         .shareSuspendingWhileNoSubs(scope = viewModelScope)
 
     val state: StateFlow<State> = combine(
-        _replayListState.map { it.toPersistentList() },
-        _selectedReplayState,
+        solvePreviewListState.map { it.toPersistentList() },
+        _selectedSolvePreviewState,
         replayStateManager.playingState,
         _isLoadingState,
         _errorState
-    ) { replayList, selectedReplay, playingState, isLoading, error ->
+    ) { solvePreviews, selectedSolvePreview, playingState, isLoading, error ->
         State(
-            replayList = replayList,
-            selectedReplay = selectedReplay,
+            solvePreviews = solvePreviews,
+            selectedSolvePreview = selectedSolvePreview,
             playingState = playingState,
             isLoading = isLoading,
             errorMessage = error
         )
-    }.onStart { loadReplays() }
+    }.onStart { loadSolvePreviews() }
         .stateIn(
             scope = viewModelScope,
             started = SharingStarted.WhileSubscribed(5_000),
@@ -82,34 +82,34 @@ class ReplayViewModel(
 
     fun handleAction(action: Action) {
         when (action) {
-            Action.LoadReplays -> loadReplays()
-            is Action.SelectReplay -> selectReplay(action.replay)
+            Action.LoadSolvePreviews -> loadSolvePreviews()
+            is Action.SelectSolve -> selectSolvePreview(action.solvePreview)
             Action.Play -> play()
             Action.Pause -> pause()
             Action.Stop -> stop()
             is Action.SetSpeed -> setSpeed(action.speed.multiplier)
-            is Action.DeleteReplay -> deleteReplay(action.replay)
+            is Action.DeleteSolve -> deleteSolve(action.solvePreview)
         }
     }
 
-    private fun loadReplays() = viewModelScope.launch {
+    private fun loadSolvePreviews() = viewModelScope.launch {
         _isLoadingState.update { true }
         _errorState.update { null }
         try {
-            val replays = replayHistoryRepository.getReplayList(
-                ReplayHistoryRepository.PagingParams.Latest(count = 50)
+            val previews = solveHistoryRepository.getSolveList(
+                SolveHistoryRepository.PagingParams.Latest(count = 50)
             )
-            _replayListState.update { replays }
+            solvePreviewListState.update { previews }
         } catch (e: Exception) {
-            _errorState.update { e.message ?: "Failed to load replays" }
+            _errorState.update { e.message ?: "Failed to load solve previews" }
         } finally {
             _isLoadingState.update { false }
         }
     }
 
-    private fun selectReplay(replay: Replay) {
-        _selectedReplayState.update { replay }
-        replayStateManager.setReplay(replay)
+    private fun selectSolvePreview(solvePreview: SolvePreview) {
+        _selectedSolvePreviewState.update { solvePreview }
+        replayStateManager.setReplay(solvePreview)
     }
 
     private fun play() {
@@ -128,14 +128,14 @@ class ReplayViewModel(
         replayStateManager.setSpeed(speed)
     }
 
-    private fun deleteReplay(replay: Replay) = viewModelScope.launch {
+    private fun deleteSolve(solvePreview: SolvePreview) = viewModelScope.launch {
         try {
-            replayHistoryRepository.deleteReplay(replay)
-            _replayListState.update { list ->
-                list.filter { it.id != replay.id }
+            solveHistoryRepository.deleteSolve(solvePreview)
+            solvePreviewListState.update { list ->
+                list.filter { it.id != solvePreview.id }
             }
-            if (_selectedReplayState.value?.id == replay.id) {
-                _selectedReplayState.update { null }
+            if (_selectedSolvePreviewState.value?.id == solvePreview.id) {
+                _selectedSolvePreviewState.update { null }
             }
         } catch (e: Exception) {
             _errorState.update { e.message ?: "Failed to delete replay" }

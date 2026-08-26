@@ -6,6 +6,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.Scaffold
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -15,6 +16,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import com.blueprint.cubing.core.logic.CubeStateProvider
 import com.blueprint.cubing.core.model.CubeEvent
 import com.blueprint.cubing.cube.ui.CubeViewModel
 import com.blueprint.cubing.cube.ui.components.Cube2D
@@ -22,16 +24,27 @@ import com.blueprint.cubing.cube.ui.components.CubeOverlay
 import com.blueprint.cubing.cube.ui.components.IsometricCube
 import com.blueprint.cubing.cube.ui.components.rememberCube2DState
 import com.blueprint.desktopapp.impl.CubeSolverImpl
+import com.blueprint.desktopapp.impl.CubeStateProviderImpl
 
 @Composable
 internal fun MainScreen(
     vm: CubeViewModel,
     solverImpl: CubeSolverImpl,
+    cubeStateProvider: CubeStateProvider,
 ) {
 
     val cube2dState = rememberCube2DState()
 
+    cubeStateProvider as CubeStateProviderImpl
+
     val requester = remember { FocusRequester() }
+
+    DisposableEffect(Unit) {
+        cubeStateProvider.cube2dState2d = cube2dState
+        onDispose {
+            cubeStateProvider.cube2dState2d = null
+        }
+    }
 
     LaunchedEffect(Unit) {
         solverImpl.cubeState = cube2dState

@@ -11,6 +11,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.toRoute
+import com.blueprint.cubing.core.logic.CubeStateProvider
 import com.blueprint.cubing.cube.ui.CubeViewModel
 import com.blueprint.cubing.device.debug.CharacteristicDetailScreen
 import com.blueprint.cubing.device.debug.CharacteristicDetailViewModel
@@ -75,7 +76,8 @@ fun App() {
 
             val vm = koinViewModel<CubeViewModel>()
             val solver = koinInject<CubeSolverImpl>()
-            MainScreen(vm, solver)
+            val cubeStateProvider = koinInject<CubeStateProvider>()
+            MainScreen(vm, solver, cubeStateProvider)
         }
 
         composable<SearchDevicesRoute>() {

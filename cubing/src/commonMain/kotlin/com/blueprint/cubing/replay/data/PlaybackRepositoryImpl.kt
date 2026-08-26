@@ -6,19 +6,18 @@ import com.blueprint.cubing.core.pipeline.TimerNode
 import com.blueprint.cubing.core.pipeline.base.applyPipeline
 import com.blueprint.cubing.core.pipeline.base.emptyNode
 import com.blueprint.cubing.replay.PlaybackRepository
-import com.blueprint.cubing.replay.data.persistence.ReplayDB
+import com.blueprint.cubing.replay.data.persistence.SolveDB
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 
 class PlaybackRepositoryImpl(
-    private val replayDB: ReplayDB,
+    private val solveDB: SolveDB,
 ) : PlaybackRepository {
 
-    override fun replay(replayId: String): Flow<CubeEvent> = flow {
+    override fun replay(solveId: String): Flow<CubeEvent> = flow {
 
         val rawDataFlow = flow<ByteArray> {
-            val rawData = replayDB.replayRawDataDao().getRawData(replayId) ?: return@flow
-            TODO()
+            val rawData =  TODO()
         }
         val node = emptyNode<ByteArray>()
         val messageParserNode = Gen2MessageParserNode()

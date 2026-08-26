@@ -27,7 +27,7 @@ fun CubeOverlayPreview() {
         connectionState = ConnectionState.Connecting,
         solveState = mockSolveState,
         cubeList = emptyList(),
-        replayHistory = emptyList(),
+        solveHistory = emptyList(),
         activeDevice = null,
         onAction = onAction
     )

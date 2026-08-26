@@ -1,7 +1,7 @@
 package com.blueprint.cubing.cube
 
 import com.blueprint.cubing.core.model.SolveSummary
-import com.blueprint.cubing.replay.ReplayHistoryRepository
+import com.blueprint.cubing.replay.SolveHistoryRepository
 
 interface SolveSaver {
 
@@ -10,11 +10,11 @@ interface SolveSaver {
 }
 
 class SolveSaverImpl(
-    private val replayHistoryRepository: ReplayHistoryRepository
+    private val solveHistoryRepository: SolveHistoryRepository
 ): SolveSaver {
 
     override suspend fun saveSuccessfulSolve(name: String, solve: SolveSummary) {
-        replayHistoryRepository.createNewReplay(
+        solveHistoryRepository.createNewSolve(
             solveSummary = solve,
             name = null,
             note = null

@@ -2,6 +2,7 @@ package com.blueprint.desktopapp.di
 
 import com.blueprint.bleapi.IBleScanner
 import com.blueprint.blewindows.BleScanner
+import com.blueprint.cubing.core.logic.CubeStateProvider
 import com.blueprint.cubing.core.model.CubeEvent
 import com.blueprint.cubing.core.pipeline.CubeSolverNode
 import com.blueprint.cubing.core.pipeline.UiMapperNode
@@ -15,9 +16,10 @@ import com.blueprint.cubing.di.commonMainModule
 import com.blueprint.cubing.navigation.AppNavigator
 import com.blueprint.cubing.navigation.AppNavigatorCommonImpl
 import com.blueprint.cubing.navigation.NavigationEventHandler
-import com.blueprint.cubing.replay.data.persistence.ReplayDB
-import com.blueprint.cubing.replay.data.persistence.getReplayDatabase
+import com.blueprint.cubing.replay.data.persistence.SolveDB
+import com.blueprint.cubing.replay.data.persistence.getSolveDataBase
 import com.blueprint.desktopapp.impl.CubeSolverImpl
+import com.blueprint.desktopapp.impl.CubeStateProviderImpl
 import kotlinx.coroutines.flow.Flow
 import org.koin.core.module.dsl.viewModelOf
 import org.koin.dsl.binds
@@ -42,7 +44,9 @@ val appModule = module {
     }
 
     single<CubeDeviceDB> { getCubeDatabase() }
-    single<ReplayDB> { getReplayDatabase() }
+    single<SolveDB> { getSolveDataBase() }
+
+    single<CubeStateProvider> { CubeStateProviderImpl() }
 
     viewModelOf(::CubeViewModel)
     viewModelOf(::SearchDeviceViewModel)

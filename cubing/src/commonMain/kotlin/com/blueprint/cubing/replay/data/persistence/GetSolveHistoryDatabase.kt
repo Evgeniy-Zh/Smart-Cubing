@@ -5,10 +5,10 @@ import androidx.sqlite.driver.bundled.BundledSQLiteDriver
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 
-fun getReplayDatabase(
+fun getSolveDataBase(
     args: Any? = null
-): ReplayDB {
-    val builder: RoomDatabase.Builder<ReplayDB> = getReplayDatabaseBuilder(args)
+): SolveDB {
+    val builder: RoomDatabase.Builder<SolveDB> = getSolveDatabaseBuilder(args)
     return builder
         .setDriver(BundledSQLiteDriver())
         .fallbackToDestructiveMigration(true)
@@ -16,5 +16,6 @@ fun getReplayDatabase(
         .build()
 }
 
-expect fun getReplayDatabaseBuilder(args: Any?): RoomDatabase.Builder<ReplayDB>
+expect fun getSolveDatabaseBuilder(args: Any?): RoomDatabase.Builder<SolveDB>
 
+expect fun getInMemorySolveDatabaseBuilder(): RoomDatabase.Builder<SolveDB>

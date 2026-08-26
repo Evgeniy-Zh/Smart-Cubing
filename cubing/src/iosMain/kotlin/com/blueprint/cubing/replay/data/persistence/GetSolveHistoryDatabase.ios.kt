@@ -7,7 +7,7 @@ import platform.Foundation.NSFileManager
 import platform.Foundation.NSSearchPathForDirectoriesInDomains
 import platform.Foundation.NSUserDomainMask
 
-actual fun getReplayDatabaseBuilder(args: Any?): RoomDatabase.Builder<ReplayDB> {
+actual fun getSolveDatabaseBuilder(args: Any?): RoomDatabase.Builder<SolveDB> {
     val fileManager = NSFileManager.defaultManager()
     val documentDirectory = NSSearchPathForDirectoriesInDomains(
         NSDocumentDirectory,
@@ -21,7 +21,7 @@ actual fun getReplayDatabaseBuilder(args: Any?): RoomDatabase.Builder<ReplayDB> 
         "replay_room.db"
     }
 
-    return Room.databaseBuilder<ReplayDB>(
+    return Room.databaseBuilder<SolveDB>(
         name = dbPath,
     )
 }

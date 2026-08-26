@@ -48,7 +48,7 @@ import com.blueprint.cubing.cube.ui.CubeViewModel
 import com.blueprint.cubing.core.model.ConnectionState
 import com.blueprint.cubing.core.model.CubeDevice
 import com.blueprint.cubing.cube.SolveStateManager
-import com.blueprint.cubing.replay.model.Replay
+import com.blueprint.cubing.replay.model.SolvePreview
 import com.blueprint.cubing.replay.ui.SolveHistoryList
 
 var TimerFontFamily: FontFamily = FontFamily.Monospace
@@ -70,7 +70,7 @@ fun CubeOverlay(
         connectionState = connectionState,
         solveState = solveState,
         cubeList = cubeList,
-        replayHistory = state.replayHistory,
+        solveHistory = state.solveHistory,
         activeDevice = activeDevice,
         onAction = onAction,
         mainButtonFocusRequester = mainButtonFocusRequester,
@@ -83,7 +83,7 @@ fun CubeOverlayContent(
     connectionState: ConnectionState,
     solveState: SolveStateManager.SolveState,
     cubeList: List<CubeDevice>,
-    replayHistory: List<Replay>,
+    solveHistory: List<SolvePreview>,
     activeDevice: CubeDevice?,
     onAction: (CubeViewModel.Action) -> Unit,
     mainButtonFocusRequester: FocusRequester? = null,
@@ -229,7 +229,7 @@ fun CubeOverlayContent(
                     .align(Alignment.BottomStart)
                     .heightIn(max = 100.dp)
                         ,
-                replays = replayHistory
+                solvePreviews = solveHistory
             )
 
         }
