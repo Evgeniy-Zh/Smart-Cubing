@@ -17,16 +17,16 @@ import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material.icons.filled.Pause
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material.icons.filled.Stop
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -36,7 +36,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -66,7 +65,6 @@ import com.catalinjurjiu.animcubeandroid.AnimCube
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import org.koin.androidx.compose.koinViewModel
-
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
 @OptIn(ExperimentalMaterial3Api::class)
@@ -136,390 +134,294 @@ fun ReplayScreen(
                 .padding(paddingValues)
         ) {
             val isPortrait = maxHeight >= maxWidth
-
-            if (isPortrait) {
-                Column(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .weight(1f)
-                            .fillMaxWidth()
+            val content = @Composable {
+                if (isPortrait) {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        AndroidView(
-                            modifier = Modifier.fillMaxSize(),
-                            factory = { ctx ->
-                                val themedContext = ContextThemeWrapper(ctx, R.style.AnimCubeDark)
-                                AnimCube(themedContext).apply {
-                                    setDebuggable(true)
-                                    setSingleRotationSpeed(3)
-                                    setDoubleRotationSpeed(3)
-                                    if (state.selectedSolvePreview == null) {
-                                        setCubeModel(disconnectedCubeState)
-                                    }
-                                }.also { cubeView = it }
+                        ReplayCubePanel(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxWidth(),
+                            selectedSolveName = state.selectedSolvePreview?.name ?: "No replay selected",
+                            timeText = state.playingState.time.ifBlank { "00:00.00" },
+                            selectedSolveEnabled = state.selectedSolvePreview != null,
+                            playingStatus = state.playingState.status,
+                            selectedSpeed = state.playingState.speed,
+                            onPlay = { replayViewModel.handleAction(ReplayViewModel.Action.Play) },
+                            onPause = { replayViewModel.handleAction(ReplayViewModel.Action.Pause) },
+                            onStop = { replayViewModel.handleAction(ReplayViewModel.Action.Stop) },
+                            onSpeedSelected = { speed ->
+                                replayViewModel.handleAction(ReplayViewModel.Action.SetSpeed(speed))
                             },
-                            update = { },
-                            onRelease = { view ->
-                                view.cleanUpResources()
-                            },
+                            onCubeViewReady = { cubeView = it },
                         )
 
-                        Column(
+                        ReplayListPanel(
                             modifier = Modifier
-                                .align(Alignment.BottomCenter)
                                 .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
-                            Text(
-                                text = state.selectedSolvePreview?.name ?: "No replay selected",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Spacer(modifier = Modifier.padding(vertical = 4.dp))
-                            Text(
-                                text = state.playingState.time.ifBlank { "00:00.00" },
-                                style = MaterialTheme.typography.displayMedium,
-                                fontWeight = FontWeight.Bold
-                            )
+                                .weight(1f),
+                            solvePreviews = state.solvePreviews,
+                            selectedSolvePreviewId = state.selectedSolvePreview?.id,
+                            isLoading = state.isLoading,
+                            errorText = state.errorMessage,
+                            onSelectSolve = { replayViewModel.handleAction(ReplayViewModel.Action.SelectSolve(it)) },
+                            onDeleteSolve = { replayViewModel.handleAction(ReplayViewModel.Action.DeleteSolve(it)) },
+                        )
+                    }
+                } else {
+                    Row(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        ReplayCubePanel(
+                            modifier = Modifier
+                                .weight(1f)
+                                .fillMaxHeight(),
+                            selectedSolveName = state.selectedSolvePreview?.name ?: "No replay selected",
+                            timeText = state.playingState.time.ifBlank { "00:00.00" },
+                            selectedSolveEnabled = state.selectedSolvePreview != null,
+                            playingStatus = state.playingState.status,
+                            selectedSpeed = state.playingState.speed,
+                            onPlay = { replayViewModel.handleAction(ReplayViewModel.Action.Play) },
+                            onPause = { replayViewModel.handleAction(ReplayViewModel.Action.Pause) },
+                            onStop = { replayViewModel.handleAction(ReplayViewModel.Action.Stop) },
+                            onSpeedSelected = { speed ->
+                                replayViewModel.handleAction(ReplayViewModel.Action.SetSpeed(speed))
+                            },
+                            onCubeViewReady = { cubeView = it },
+                        )
 
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 12.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                val selectedSolveEnabled = state.selectedSolvePreview != null
-                                OutlinedButton(
-                                    onClick = { replayViewModel.handleAction(ReplayViewModel.Action.Play) },
-                                    enabled = selectedSolveEnabled && state.playingState.status != PlayingState.Status.PLAYING,
-                                ) { Text("Play") }
-                                OutlinedButton(
-                                    onClick = { replayViewModel.handleAction(ReplayViewModel.Action.Pause) },
-                                    enabled = selectedSolveEnabled && state.playingState.status == PlayingState.Status.PLAYING,
-                                ) { Text("Pause") }
-                                OutlinedButton(
-                                    onClick = { replayViewModel.handleAction(ReplayViewModel.Action.Stop) },
-                                    enabled = selectedSolveEnabled,
-                                ) { Text("Stop") }
-                            }
+                        ReplayListPanel(
+                            modifier = Modifier
+                                .width(280.dp)
+                                .fillMaxHeight(),
+                            solvePreviews = state.solvePreviews,
+                            selectedSolvePreviewId = state.selectedSolvePreview?.id,
+                            isLoading = state.isLoading,
+                            errorText = state.errorMessage,
+                            onSelectSolve = { replayViewModel.handleAction(ReplayViewModel.Action.SelectSolve(it)) },
+                            onDeleteSolve = { replayViewModel.handleAction(ReplayViewModel.Action.DeleteSolve(it)) },
+                        )
+                    }
+                }
+            }
+            content()
+        }
+    }
+}
 
-                            Row(
-                                modifier = Modifier.padding(top = 8.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                ReplayViewModel.Speed.entries.forEach { speed ->
-                                    val selected = state.playingState.speed == speed.multiplier
-                                    TextButton(
-                                        onClick = {
-                                            replayViewModel.handleAction(ReplayViewModel.Action.SetSpeed(speed))
-                                        },
-                                        colors = if (selected) {
-                                            ButtonDefaults.textButtonColors(
-                                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                            )
-                                        } else {
-                                            ButtonDefaults.textButtonColors()
-                                        }
-                                    ) {
-                                        Text(speed.name.lowercase().replaceFirstChar { it.titlecase() })
-                                    }
-                                }
+@Composable
+private fun ReplayCubePanel(
+    modifier: Modifier = Modifier,
+    selectedSolveName: String,
+    timeText: String,
+    selectedSolveEnabled: Boolean,
+    playingStatus: PlayingState.Status,
+    selectedSpeed: Float,
+    onPlay: () -> Unit,
+    onPause: () -> Unit,
+    onStop: () -> Unit,
+    onSpeedSelected: (ReplayViewModel.Speed) -> Unit,
+    onCubeViewReady: (AnimCube) -> Unit,
+) {
+    Box(modifier = modifier) {
+        AndroidView(
+            modifier = Modifier.fillMaxSize(),
+            factory = { ctx ->
+                val themedContext = ContextThemeWrapper(ctx, R.style.AnimCubeDark)
+                AnimCube(themedContext).apply {
+                    setDebuggable(true)
+                }.also(onCubeViewReady)
+            },
+            update = { },
+            onRelease = { view ->
+                view.cleanUpResources()
+            },
+        )
+
+        Column(
+            modifier = Modifier
+                .align(Alignment.TopCenter)
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+        ) {
+            Text(
+                text = selectedSolveName,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold
+            )
+        }
+
+        Column(
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .fillMaxWidth()
+                .padding(horizontal = 16.dp, vertical = 12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Spacer(modifier = Modifier.padding(vertical = 4.dp))
+            Text(
+                text = timeText,
+                style = MaterialTheme.typography.displayMedium,
+                fontWeight = FontWeight.Bold
+            )
+
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 12.dp),
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                val isPlaying = playingStatus == PlayingState.Status.PLAYING
+                val playPauseAction = if (isPlaying) onPause else onPlay
+
+                IconButton(
+                    onClick = playPauseAction,
+                    enabled = selectedSolveEnabled,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        imageVector = if (isPlaying) Icons.Filled.Pause else Icons.Filled.PlayArrow,
+                        contentDescription = if (isPlaying) "Pause" else "Play"
+                    )
+                }
+
+                IconButton(
+                    onClick = onStop,
+                    enabled = selectedSolveEnabled,
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Stop,
+                        contentDescription = "Stop"
+                    )
+                }
+
+                var expanded by remember { mutableStateOf(false) }
+                Box(modifier = Modifier.weight(1.8f)) {
+                    OutlinedButton(
+                        onClick = { expanded = true },
+                        enabled = selectedSolveEnabled,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = when (selectedSpeed) {
+                                ReplayViewModel.Speed.SLOW.multiplier -> "x0.5"
+                                ReplayViewModel.Speed.FAST.multiplier -> "x2"
+                                else -> "x1"
                             }
-                        }
+                        )
                     }
 
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .weight(1f),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.98f)
-                        ),
-                        shape = RoundedCornerShape(18.dp)
+                    androidx.compose.material3.DropdownMenu(
+                        expanded = expanded,
+                        onDismissRequest = { expanded = false }
                     ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(12.dp)
-                        ) {
-                            Text(
-                                text = "Solve replays",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(bottom = 8.dp)
-                            )
-
-                            if (state.isLoading) {
-                                Text(
-                                    text = "Loading...",
-                                    modifier = Modifier.padding(vertical = 12.dp),
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-
-                            val errorText = state.errorMessage
-                            if (errorText != null) {
-                                Text(
-                                    text = errorText,
-                                    color = MaterialTheme.colorScheme.error,
-                                    modifier = Modifier.padding(vertical = 8.dp)
-                                )
-                            }
-
-                            LazyColumn(
-                                modifier = Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                items(state.solvePreviews, key = { it.id }) { solvePreview ->
-                                    val isSelected = state.selectedSolvePreview?.id == solvePreview.id
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .background(
-                                                if (isSelected) {
-                                                    MaterialTheme.colorScheme.primaryContainer
-                                                } else {
-                                                    Color.Transparent
-                                                },
-                                                RoundedCornerShape(12.dp)
-                                            )
-                                            .clickable {
-                                                replayViewModel.handleAction(
-                                                    ReplayViewModel.Action.SelectSolve(solvePreview)
-                                                )
-                                            }
-                                            .padding(horizontal = 12.dp, vertical = 10.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        Column(modifier = Modifier.weight(1f)) {
-                                            Text(
-                                                text = solvePreview.name,
-                                                style = MaterialTheme.typography.bodyLarge,
-                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                                            )
-                                            if (solvePreview.note.isNotBlank()) {
-                                                Text(
-                                                    text = solvePreview.note,
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
-                                            }
-                                        }
-
-                                        IconButton(
-                                            onClick = {
-                                                replayViewModel.handleAction(
-                                                    ReplayViewModel.Action.DeleteSolve(solvePreview)
-                                                )
-                                            }
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.Delete,
-                                                contentDescription = "Delete replay"
-                                            )
-                                        }
-                                    }
+                        ReplayViewModel.Speed.entries.forEach { speed ->
+                            androidx.compose.material3.DropdownMenuItem(
+                                text = { Text("x${speed.multiplier}") },
+                                onClick = {
+                                    onSpeedSelected(speed)
+                                    expanded = false
                                 }
-                            }
+                            )
                         }
                     }
                 }
-            } else {
-                Row(
-                    modifier = Modifier.fillMaxSize(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Box(
+            }
+        }
+    }
+}
+
+@Composable
+private fun ReplayListPanel(
+    modifier: Modifier = Modifier,
+    solvePreviews: List<com.blueprint.cubing.replay.model.SolvePreview>,
+    selectedSolvePreviewId: String?,
+    isLoading: Boolean,
+    errorText: String?,
+    onSelectSolve: (com.blueprint.cubing.replay.model.SolvePreview) -> Unit,
+    onDeleteSolve: (com.blueprint.cubing.replay.model.SolvePreview) -> Unit,
+) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.98f)
+        ),
+        shape = RoundedCornerShape(18.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp)
+        ) {
+            Text(
+                text = "Solve replays",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+
+            if (isLoading) {
+                Text(
+                    text = "Loading...",
+                    modifier = Modifier.padding(vertical = 12.dp),
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            }
+
+            if (errorText != null) {
+                Text(
+                    text = errorText,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                items(solvePreviews, key = { it.id }) { solvePreview ->
+                    val isSelected = selectedSolvePreviewId == solvePreview.id
+                    Row(
                         modifier = Modifier
-                            .weight(1f)
-                            .fillMaxHeight()
+                            .fillMaxWidth()
+                            .background(
+                                if (isSelected) {
+                                    MaterialTheme.colorScheme.primaryContainer
+                                } else {
+                                    Color.Transparent
+                                },
+                                RoundedCornerShape(12.dp)
+                            )
+                            .clickable { onSelectSolve(solvePreview) }
+                            .padding(horizontal = 12.dp),
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(6.dp)
                     ) {
-                        AndroidView(
-                            modifier = Modifier.fillMaxSize(),
-                            factory = { ctx ->
-                                val themedContext = ContextThemeWrapper(ctx, R.style.AnimCubeDark)
-                                AnimCube(themedContext).apply {
-                                    setDebuggable(true)
-                                    setSingleRotationSpeed(3)
-                                    setDoubleRotationSpeed(3)
-                                    if (state.selectedSolvePreview == null) {
-                                        setCubeModel(disconnectedCubeState)
-                                    }
-                                }.also { cubeView = it }
-                            },
-                            update = { },
-                            onRelease = { view ->
-                                view.cleanUpResources()
-                            },
-                        )
-
-                        Column(
-                            modifier = Modifier
-                                .align(Alignment.BottomCenter)
-                                .fillMaxWidth()
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
-                        ) {
+                        Column(modifier = Modifier.weight(1f)) {
                             Text(
-                                text = state.selectedSolvePreview?.name ?: "No replay selected",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold
+                                text = solvePreview.name,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
                             )
-                            Spacer(modifier = Modifier.padding(vertical = 4.dp))
-                            Text(
-                                text = state.playingState.time.ifBlank { "00:00.00" },
-                                style = MaterialTheme.typography.displayMedium,
-                                fontWeight = FontWeight.Bold
-                            )
-
-                            Row(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(top = 12.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                val selectedSolveEnabled = state.selectedSolvePreview != null
-                                OutlinedButton(
-                                    onClick = { replayViewModel.handleAction(ReplayViewModel.Action.Play) },
-                                    enabled = selectedSolveEnabled && state.playingState.status != PlayingState.Status.PLAYING,
-                                ) { Text("Play") }
-                                OutlinedButton(
-                                    onClick = { replayViewModel.handleAction(ReplayViewModel.Action.Pause) },
-                                    enabled = selectedSolveEnabled && state.playingState.status == PlayingState.Status.PLAYING,
-                                ) { Text("Pause") }
-                                OutlinedButton(
-                                    onClick = { replayViewModel.handleAction(ReplayViewModel.Action.Stop) },
-                                    enabled = selectedSolveEnabled,
-                                ) { Text("Stop") }
-                            }
-
-                            Row(
-                                modifier = Modifier.padding(top = 8.dp),
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                ReplayViewModel.Speed.entries.forEach { speed ->
-                                    val selected = state.playingState.speed == speed.multiplier
-                                    TextButton(
-                                        onClick = {
-                                            replayViewModel.handleAction(ReplayViewModel.Action.SetSpeed(speed))
-                                        },
-                                        colors = if (selected) {
-                                            ButtonDefaults.textButtonColors(
-                                                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                                                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-                                            )
-                                        } else {
-                                            ButtonDefaults.textButtonColors()
-                                        }
-                                    ) {
-                                        Text(speed.name.lowercase().replaceFirstChar { it.titlecase() })
-                                    }
-                                }
+                            if (solvePreview.note.isNotBlank()) {
+                                Text(
+                                    text = solvePreview.note,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
                         }
-                    }
 
-                    Card(
-                        modifier = Modifier
-                            .width(280.dp)
-                            .fillMaxHeight(),
-                        colors = CardDefaults.cardColors(
-                            containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.98f)
-                        ),
-                        shape = RoundedCornerShape(18.dp)
-                    ) {
-                        Column(
-                            modifier = Modifier
-                                .fillMaxSize()
-                                .padding(12.dp)
-                        ) {
-                            Text(
-                                text = "Solve replays",
-                                style = MaterialTheme.typography.titleLarge,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(bottom = 8.dp)
+                        IconButton(onClick = { onDeleteSolve(solvePreview) }) {
+                            Icon(
+                                imageVector = Icons.Filled.Delete,
+                                contentDescription = "Delete replay"
                             )
-
-                            if (state.isLoading) {
-                                Text(
-                                    text = "Loading...",
-                                    modifier = Modifier.padding(vertical = 12.dp),
-                                    style = MaterialTheme.typography.bodyMedium
-                                )
-                            }
-
-                            val errorText = state.errorMessage
-                            if (errorText != null) {
-                                Text(
-                                    text = errorText,
-                                    color = MaterialTheme.colorScheme.error,
-                                    modifier = Modifier.padding(vertical = 8.dp)
-                                )
-                            }
-
-                            LazyColumn(
-                                modifier = Modifier.fillMaxSize(),
-                                verticalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                items(state.solvePreviews, key = { it.id }) { solvePreview ->
-                                    val isSelected = state.selectedSolvePreview?.id == solvePreview.id
-                                    Row(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .background(
-                                                if (isSelected) {
-                                                    MaterialTheme.colorScheme.primaryContainer
-                                                } else {
-                                                    Color.Transparent
-                                                },
-                                                RoundedCornerShape(12.dp)
-                                            )
-                                            .clickable {
-                                                replayViewModel.handleAction(
-                                                    ReplayViewModel.Action.SelectSolve(solvePreview)
-                                                )
-                                            }
-                                            .padding(horizontal = 12.dp, vertical = 10.dp),
-                                        verticalAlignment = Alignment.CenterVertically,
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        Column(modifier = Modifier.weight(1f)) {
-                                            Text(
-                                                text = solvePreview.name,
-                                                style = MaterialTheme.typography.bodyLarge,
-                                                fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium
-                                            )
-                                            if (solvePreview.note.isNotBlank()) {
-                                                Text(
-                                                    text = solvePreview.note,
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                                                )
-                                            }
-                                        }
-
-                                        IconButton(
-                                            onClick = {
-                                                replayViewModel.handleAction(
-                                                    ReplayViewModel.Action.DeleteSolve(solvePreview)
-                                                )
-                                            }
-                                        ) {
-                                            Icon(
-                                                imageVector = Icons.Default.Delete,
-                                                contentDescription = "Delete replay"
-                                            )
-                                        }
-                                    }
-                                }
-                            }
                         }
                     }
                 }
