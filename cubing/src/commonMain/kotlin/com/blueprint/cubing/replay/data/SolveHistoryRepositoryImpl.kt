@@ -72,7 +72,7 @@ class SolveHistoryRepositoryImpl(
     }
 
     override suspend fun deleteSolve(solveId: String) {
-        TODO("Not Implemented")
+        solveDB.replayDao().deleteSolveById(solveId)
     }
 
     override suspend fun deleteSolve(solvePreview: SolvePreview) {

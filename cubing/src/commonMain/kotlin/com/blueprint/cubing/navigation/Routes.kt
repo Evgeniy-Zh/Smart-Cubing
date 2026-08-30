@@ -20,3 +20,6 @@ data class CharacteristicDetailsRoute(
 @Serializable
 data object SearchDevicesRoute: Route
 
+@Serializable
+data object ReplayRoute: Route
+

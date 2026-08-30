@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 
 interface SolveEvents {
     sealed interface Event {
-        data class SolveStart(val firstMove: CubeEvent.Move?) : Event
+        data class SolveStart(val cubeKociembaState: String, val firstMove: CubeEvent.Move?) : Event
         data class InspectionStart(val cubeKociembaState: String) : Event
         data object GiveUp : Event
     }

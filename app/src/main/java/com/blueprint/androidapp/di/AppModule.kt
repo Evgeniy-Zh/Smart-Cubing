@@ -20,6 +20,7 @@ import com.blueprint.cubing.device.search.SearchDeviceViewModel
 import com.blueprint.cubing.di.commonMainModule
 import com.blueprint.cubing.replay.data.persistence.SolveDB
 import com.blueprint.cubing.replay.data.persistence.getSolveDataBase
+import com.blueprint.cubing.replay.ui.ReplayViewModel
 import org.koin.androidx.viewmodel.dsl.viewModelOf
 import org.koin.dsl.binds
 import org.koin.dsl.module
@@ -43,4 +44,5 @@ val appModule = module {
     viewModelOf(::SearchDeviceViewModel)
     viewModelOf(::DeviceDetailsViewModel)
     viewModelOf(::CharacteristicDetailViewModel)
+    viewModelOf(::ReplayViewModel)
 }

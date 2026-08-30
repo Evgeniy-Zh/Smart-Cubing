@@ -10,6 +10,7 @@ import com.blueprint.cubing.cube.CubeStateManager
 import com.blueprint.cubing.cube.SolveStateManager
 import com.blueprint.cubing.device.list.CubeListRepository
 import com.blueprint.cubing.navigation.AppNavigator
+import com.blueprint.cubing.navigation.ReplayRoute
 import com.blueprint.cubing.navigation.SearchDevicesRoute
 import com.blueprint.cubing.replay.SolveHistoryRepository
 import com.blueprint.cubing.replay.model.SolvePreview
@@ -35,6 +36,7 @@ class CubeViewModel(
         object Disconnect : Action
         object SolveAction : Action
         object SearchDevices: Action
+        object OpenReplays: Action
         data class SelectDevice(val device: CubeDevice) : Action
     }
 
@@ -87,6 +89,7 @@ class CubeViewModel(
             Action.Disconnect -> disconnect()
             Action.SolveAction -> solveAction()
             Action.SearchDevices -> searchDevices()
+            Action.OpenReplays -> openReplays()
             is Action.SelectDevice -> selectDevice(action.device)
         }
     }
@@ -113,6 +116,10 @@ class CubeViewModel(
 
     private fun disconnect() = viewModelScope.launch {
         cubeListRepository.setAsActive(null)
+    }
+
+    private fun openReplays() {
+        appNavigator.navigateTo(route = ReplayRoute)
     }
 
 }

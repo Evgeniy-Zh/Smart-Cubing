@@ -68,7 +68,7 @@ class SolveStateManager(
 
     private fun idle() {
         coroutineScope.launch {
-            solveTimer.stop()
+            solveTimer.stopAndAwait()
             _state.emit(SolveState.Idle)
         }
     }
@@ -84,7 +84,7 @@ class SolveStateManager(
     private fun start(move: CubeEvent.Move?) {
         solveTimer.reset()
         solveTimer.start(coroutineScope)
-        solveNotifier.notify(SolveEvents.Event.SolveStart(firstMove = move))
+        solveNotifier.notify(SolveEvents.Event.SolveStart(cubeKociembaState = cubeStateProvider.getKociembaState(), firstMove = move))
         coroutineScope.launch {
             solveTimer.currentTime.collectLatest {
                 _state.emit(SolveState.Solving(it))
@@ -95,7 +95,7 @@ class SolveStateManager(
     private fun giveUp() {
         solveNotifier.notify(SolveEvents.Event.GiveUp)
         coroutineScope.launch {
-            solveTimer.stop()
+            solveTimer.stopAndAwait()
             _state.emit(SolveState.Idle)
         }
     }
@@ -116,7 +116,7 @@ class SolveStateManager(
 
     private suspend fun onSolved(event: CubeEvent.Solved) {
         if (state.value is SolveState.Solving) {
-            solveTimer.stop()
+            solveTimer.stopAndAwait()
 
             val uiTime = solveTimer.getTotalTimeFormatted()
             val measuredTime = event.solveSummary?.totalTime?.formatTime(TimeFormat.SOLVING)

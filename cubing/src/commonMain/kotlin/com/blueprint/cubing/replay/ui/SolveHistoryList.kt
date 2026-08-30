@@ -1,5 +1,6 @@
 package com.blueprint.cubing.replay.ui
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
@@ -13,6 +14,7 @@ import com.blueprint.cubing.replay.model.SolvePreview
 fun SolveHistoryList(
     modifier: Modifier = Modifier,
     solvePreviews: List<SolvePreview>,
+    onItemClick: (SolvePreview) -> Unit = {},
 ) {
 
     val listState = rememberLazyListState()
@@ -21,12 +23,15 @@ fun SolveHistoryList(
     }
     LazyColumn(modifier = modifier, state = listState) {
         items(solvePreviews, key = { it.id }) { solvePreview ->
-            SolveHistoryItem(solvePreview)
+            SolveHistoryItem(
+                Modifier.clickable(onClick = { onItemClick(solvePreview) }),
+                solvePreview
+            )
         }
     }
 }
 
 @Composable
-fun SolveHistoryItem(solvePreview: SolvePreview) {
-    Text(text = solvePreview.name)
+fun SolveHistoryItem(modifier: Modifier, solvePreview: SolvePreview) {
+    Text(modifier = modifier, text = solvePreview.name)
 }

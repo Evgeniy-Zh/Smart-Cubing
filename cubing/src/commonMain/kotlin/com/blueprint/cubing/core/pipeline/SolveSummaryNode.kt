@@ -54,9 +54,9 @@ class SolveSummaryNode(
             eventObserverJob = scope.launch {
                 solveEvents.eventFlow.collect { event ->
                     when (event) {
-                        is SolveEvents.Event.SolveStart -> onSolveStart(event.firstMove)
+                        is SolveEvents.Event.SolveStart -> onSolveStart(event)
                         is SolveEvents.Event.InspectionStart -> onInspectionStart(event.cubeKociembaState)
-                        is SolveEvents.Event.GiveUp -> {}
+                        is SolveEvents.Event.GiveUp -> onGiveUp()
                     }
                 }
             }
@@ -66,12 +66,13 @@ class SolveSummaryNode(
     /**
      *  if a solve is triggered by a move, the method is called after the move is made.
      */
-    private fun onSolveStart(firstMove: CubeEvent.Move?) {
-
-        firstMove?.let {
+    private fun onSolveStart(event: SolveEvents.Event.SolveStart) {
+        initialState = event.cubeKociembaState
+        moves.clear()
+        event.firstMove?.let {
             moves.add(ReplayData.Move(moveSequence = it.moveSequence, elapsed = 0))
         }
-        val firstMoveTimeStamp = firstMove?.systemTimeStamp
+        val firstMoveTimeStamp = event.firstMove?.systemTimeStamp
 
         if (firstMoveTimeStamp != null) {
             cubeStartTime = firstMoveTimeStamp
@@ -81,7 +82,11 @@ class SolveSummaryNode(
     }
 
     private fun onInspectionStart(state: String) {
-        initialState = state
+
+    }
+
+    private fun onGiveUp() {
+        reset()
     }
 
 

@@ -227,9 +227,9 @@ fun CubeOverlayContent(
             SolveHistoryList(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
-                    .heightIn(max = 100.dp)
-                        ,
-                solvePreviews = solveHistory
+                    .heightIn(max = 100.dp),
+                solvePreviews = solveHistory,
+                onItemClick = { onAction(CubeViewModel.Action.OpenReplays) }
             )
 
         }

@@ -16,7 +16,10 @@ import com.blueprint.cubing.navigation.AppNavigator
 import com.blueprint.cubing.navigation.AppNavigatorCommonImpl
 import com.blueprint.cubing.navigation.NavigationEventHandler
 import com.blueprint.cubing.provider.PipelineProvider
+import com.blueprint.cubing.replay.PlaybackRepository
+import com.blueprint.cubing.replay.ReplayStateManager
 import com.blueprint.cubing.replay.SolveHistoryRepository
+import com.blueprint.cubing.replay.data.PlaybackRepositoryImpl
 import com.blueprint.cubing.replay.data.SolveHistoryRepositoryImpl
 import org.koin.dsl.binds
 import org.koin.dsl.module
@@ -34,6 +37,8 @@ val commonMainModule = module {
     single { SupportedDevices() }
     single { SolveNotifier() } binds arrayOf(SolveNotifier::class, SolveEvents::class)
     single { SolveSummaryNode(solveEvents = get()) }
+    single<PlaybackRepository> { PlaybackRepositoryImpl(solveDB = get(), uiMapperNode = get()) }
+    factory { ReplayStateManager(playbackRepository = get()) }
 
     //replay
     single<SolveHistoryRepository> { SolveHistoryRepositoryImpl(solveDB = get()) }

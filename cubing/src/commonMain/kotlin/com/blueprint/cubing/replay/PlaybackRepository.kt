@@ -7,4 +7,5 @@ interface PlaybackRepository {
 
     fun replay(solveId: String): Flow<CubeEvent>
 
+    suspend fun getAllReplayEvents(solveId: String): List<CubeEvent>
 }

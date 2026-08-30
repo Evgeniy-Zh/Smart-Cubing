@@ -24,11 +24,13 @@ import com.blueprint.cubing.navigation.NavigationEventHandler
 import com.blueprint.cubing.navigation.SearchDevicesRoute
 import com.blueprint.cubing.device.debug.CharacteristicDetailScreen
 import com.blueprint.androidapp.ui.cube.CubeScreen
+import com.blueprint.androidapp.ui.replay.ReplayScreen
 import com.blueprint.cubing.device.search.SearchDeviceScreen
 import com.blueprint.androidapp.ui.theme.CubingTheme
 import com.blueprint.cubing.device.search.DeviceDetailsScreen
 import com.blueprint.cubing.device.search.DeviceDetailsViewModel
 import com.blueprint.cubing.navigation.DeviceDetailsRoute
+import com.blueprint.cubing.navigation.ReplayRoute
 import org.koin.android.ext.android.inject
 import org.koin.androidx.compose.koinViewModel
 import org.koin.core.parameter.parametersOf
@@ -114,6 +116,10 @@ class MainActivity : ComponentActivity() {
                                     }
                                 })
                             )
+                        }
+
+                        composable<ReplayRoute> {
+                            ReplayScreen()
                         }
                     }
 

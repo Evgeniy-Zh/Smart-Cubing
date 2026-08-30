@@ -1,7 +1,6 @@
 package com.blueprint.cubing.cube.timer
 
 import com.blueprint.cubing.core.format.TimeFormat
-import com.blueprint.cubing.core.format.format
 import com.blueprint.cubing.core.format.formatTime
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -43,7 +42,12 @@ class CubeTimer(
         }
     }
 
-    suspend fun stop() {
+    fun stop() {
+        timerJob?.cancel()
+        endTimeStamp = getSysTimeStamp()
+    }
+
+    suspend fun stopAndAwait() {
         timerJob?.cancel()
         endTimeStamp = getSysTimeStamp()
         timerJob?.join()
