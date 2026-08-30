@@ -233,30 +233,30 @@ public class AnimCube extends SurfaceView implements View.OnTouchListener {
             animateCube();
         }
     };
-    private SurfaceHolder.Callback surfaceCallback = new SurfaceHolder.Callback() {
+     private SurfaceHolder.Callback surfaceCallback = new SurfaceHolder.Callback() {
 
-        @Override
-        public void surfaceCreated(SurfaceHolder holder) {
-            synchronized (animThreadLock) {
-                if (animThreadInactive || interrupted) {
-                    animThread.interrupt();
-                    animThread = new Thread(animRunnable);
-                    animThread.start();
-                }
-                repaint();
-            }
-        }
+         @Override
+         public void surfaceCreated(SurfaceHolder holder) {
+             synchronized (animThreadLock) {
+                 if (animThreadInactive || interrupted) {
+                     animThread.interrupt();
+                     animThread = new Thread(animRunnable);
+                     animThread.start();
+                 }
+                 repaint();
+             }
+         }
 
-        @Override
-        public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
-            repaint();
-        }
+         @Override
+         public void surfaceChanged(SurfaceHolder holder, int format, int width, int height) {
+             repaint();
+         }
 
-        @Override
-        public void surfaceDestroyed(SurfaceHolder holder) {
-            stopAnimationAndDrawing();
-        }
-    };
+         @Override
+         public void surfaceDestroyed(SurfaceHolder holder) {
+             stopAnimationAndDrawing();
+         }
+     };
 
     public AnimCube(Context context) {
         super(context);
@@ -285,11 +285,11 @@ public class AnimCube extends SurfaceView implements View.OnTouchListener {
      *
      * @return an {code int[6][9] containing the cube colors for each facelet}
      */
-    public int[][] getCubeModel() {
-        synchronized (animThreadLock) {
-            return cube;
-        }
-    }
+     public int[][] getCubeModel() {
+         synchronized (animThreadLock) {
+             return cube;
+         }
+     }
 
     /**
      * <p>
@@ -379,11 +379,11 @@ public class AnimCube extends SurfaceView implements View.OnTouchListener {
      *
      * @return {@code true} if the cube is currently animating a move, {@code false} otherwise
      */
-    public boolean isAnimating() {
-        synchronized (animThreadLock) {
-            return animating;
-        }
-    }
+     public boolean isAnimating() {
+         synchronized (animThreadLock) {
+             return animating;
+         }
+     }
 
     /**
      * <p>
@@ -541,21 +541,21 @@ public class AnimCube extends SurfaceView implements View.OnTouchListener {
      * @see #setMoveSequence(String)
      * @see #setCubeModel(String)
      */
-    public void resetToInitialState() {
-        synchronized (animThreadLock) {
-            boolean wasAnimating = animating;
-            if (animating) {
-                stopAnimation();
-            }
-            movePos = 0;
-            resetCubeColors();
-            if (!wasAnimating) {
+     public void resetToInitialState() {
+         synchronized (animThreadLock) {
+             boolean wasAnimating = animating;
+             if (animating) {
+                 stopAnimation();
+             }
+             movePos = 0;
+             resetCubeColors();
+             if (!wasAnimating) {
                 //notify listeners is also called when interrupting a current animation..this is just s.t. it won't be called twice.
-                notifyHandlerCubeModelUpdated();
-            }
-        }
-        repaint();
-    }
+                 notifyHandlerCubeModelUpdated();
+             }
+         }
+         repaint();
+     }
 
     /**
      * <p>
@@ -627,19 +627,19 @@ public class AnimCube extends SurfaceView implements View.OnTouchListener {
     /**
      * Stops an in-progress animation. No-op if an animation is not in progress.
      */
-    public void stopAnimation() {
-        synchronized (animThreadLock) {
-            animationMode = AnimationMode.STOPPED;
-            restarted = true;
-            animThreadLock.notify();
-            try {
-                animThreadLock.wait();
-            } catch (InterruptedException e) {
-                interrupted = true;
-            }
-            restarted = false;
-        }
-    }
+     public void stopAnimation() {
+         synchronized (animThreadLock) {
+             animationMode = AnimationMode.STOPPED;
+             restarted = true;
+             animThreadLock.notify();
+             try {
+                 animThreadLock.wait();
+             } catch (InterruptedException e) {
+                 interrupted = true;
+             }
+             restarted = false;
+         }
+     }
 
     /**
      * <p>
@@ -651,15 +651,15 @@ public class AnimCube extends SurfaceView implements View.OnTouchListener {
      *
      * @param onCubeModelUpdatedListener the listener interested in cube model updates
      */
-    public void setOnCubeModelUpdatedListener(OnCubeModelUpdatedListener onCubeModelUpdatedListener) {
-        synchronized (animThreadLock) {
-            if (onCubeModelUpdatedListener == null) {
+     public void setOnCubeModelUpdatedListener(OnCubeModelUpdatedListener onCubeModelUpdatedListener) {
+         synchronized (animThreadLock) {
+             if (onCubeModelUpdatedListener == null) {
                 //listener removed, shutdown handler
-                this.mainThreadHandler.removeMessages(NOTIFY_LISTENER_MODEL_UPDATED);
-            }
-            this.cubeModelUpdatedListener = onCubeModelUpdatedListener;
-        }
-    }
+                 this.mainThreadHandler.removeMessages(NOTIFY_LISTENER_MODEL_UPDATED);
+             }
+             this.cubeModelUpdatedListener = onCubeModelUpdatedListener;
+         }
+     }
 
     /**
      * <p>
@@ -668,15 +668,25 @@ public class AnimCube extends SurfaceView implements View.OnTouchListener {
      *
      * @param onCubeAnimationFinishedListener the listener interested being notified when the cube animation completes.
      */
-    public void setOnAnimationFinishedListener(OnCubeAnimationFinishedListener onCubeAnimationFinishedListener) {
-        synchronized (animThreadLock) {
-            if (onCubeAnimationFinishedListener == null) {
+     public void setOnAnimationFinishedListener(OnCubeAnimationFinishedListener onCubeAnimationFinishedListener) {
+         synchronized (animThreadLock) {
+             if (onCubeAnimationFinishedListener == null) {
                 //listener removed, shutdown handler
-                this.mainThreadHandler.removeMessages(NOTIFY_LISTENER_ANIMATION_FINISHED);
-            }
-            this.cubeAnimationFinishedListener = onCubeAnimationFinishedListener;
-        }
-    }
+                     this.mainThreadHandler.removeMessages(NOTIFY_LISTENER_ANIMATION_FINISHED);
+                 }
+             this.cubeAnimationFinishedListener = onCubeAnimationFinishedListener;
+         }
+     }
+
+     public void addSurfaceCallback(SurfaceHolder.Callback callback) {
+         getHolder().removeCallback(surfaceCallback);
+         getHolder().addCallback(callback);
+         getHolder().addCallback(surfaceCallback);
+     }
+
+     public void removeSurfaceCallback(SurfaceHolder.Callback callback) {
+         getHolder().removeCallback(callback);
+     }
 
     /**
      * <p>
@@ -689,37 +699,37 @@ public class AnimCube extends SurfaceView implements View.OnTouchListener {
      * @return a {@link Bundle} containing the cube's current state
      * @see #restoreState(Bundle)
      */
-    public Bundle saveState() {
-        Bundle b = new Bundle();
-        int[][] cubeDeepCopy = new int[6][9];
-        synchronized (animThreadLock) {
-            CubeUtils.deepCopy2DArray(cube, cubeDeepCopy);
-            for (int i = 0; i < cubeDeepCopy.length; i++) {
-                b.putIntArray(CubeState.KEY_CUBE + i, cubeDeepCopy[i]);
-            }
-            for (int i = 0; i < initialCube.length; i++) {
-                b.putIntArray(CubeState.KEY_INITIAL_CUBE + i, initialCube[i]);
-            }
-            b.putIntArray(CubeState.KEY_MOVE, move);
-            b.putBoolean(CubeState.KEY_IS_ANIMATING, animating);
-            b.putInt(CubeState.KEY_ANIMATION_MODE, animationMode);
-            b.putDoubleArray(CubeState.KEY_EYE, eye);
-            b.putDoubleArray(CubeState.KEY_EYE_X, eyeX);
-            b.putDoubleArray(CubeState.KEY_EYE_Y, eyeY);
-            b.putDouble(CubeState.KEY_ORIGINAL_ANGLE, originalAngle);
-            if (moveDir == -1) {
-                b.putInt(CubeState.KEY_MOVE_POS, movePos == move.length ? move.length : movePos + 1);
-            } else {
-                b.putInt(CubeState.KEY_MOVE_POS, movePos);
-            }
-            b.putBoolean(CubeState.KEY_EDITABLE, editable);
-            b.putInt(CubeState.KEY_BACKFACES_DISTANCE, backFacesDistance);
-            b.putInt(CubeState.KEY_SINGLE_ROTATION_SPEED, speed);
-            b.putInt(CubeState.KEY_DOUBLE_ROTATION_SPEED, doubleSpeed);
-            b.putBoolean(CubeState.KEY_IS_DEBUGGABLE, isDebuggable);
-        }
-        return b;
-    }
+     public Bundle saveState() {
+         Bundle b = new Bundle();
+         int[][] cubeDeepCopy = new int[6][9];
+         synchronized (animThreadLock) {
+             CubeUtils.deepCopy2DArray(cube, cubeDeepCopy);
+             for (int i = 0; i < cubeDeepCopy.length; i++) {
+                 b.putIntArray(CubeState.KEY_CUBE + i, cubeDeepCopy[i]);
+             }
+             for (int i = 0; i < initialCube.length; i++) {
+                 b.putIntArray(CubeState.KEY_INITIAL_CUBE + i, initialCube[i]);
+             }
+             b.putIntArray(CubeState.KEY_MOVE, move);
+             b.putBoolean(CubeState.KEY_IS_ANIMATING, animating);
+             b.putInt(CubeState.KEY_ANIMATION_MODE, animationMode);
+             b.putDoubleArray(CubeState.KEY_EYE, eye);
+             b.putDoubleArray(CubeState.KEY_EYE_X, eyeX);
+             b.putDoubleArray(CubeState.KEY_EYE_Y, eyeY);
+             b.putDouble(CubeState.KEY_ORIGINAL_ANGLE, originalAngle);
+             if (moveDir == -1) {
+                 b.putInt(CubeState.KEY_MOVE_POS, movePos == move.length ? move.length : movePos + 1);
+             } else {
+                 b.putInt(CubeState.KEY_MOVE_POS, movePos);
+             }
+             b.putBoolean(CubeState.KEY_EDITABLE, editable);
+             b.putInt(CubeState.KEY_BACKFACES_DISTANCE, backFacesDistance);
+             b.putInt(CubeState.KEY_SINGLE_ROTATION_SPEED, speed);
+             b.putInt(CubeState.KEY_DOUBLE_ROTATION_SPEED, doubleSpeed);
+             b.putBoolean(CubeState.KEY_IS_DEBUGGABLE, isDebuggable);
+         }
+         return b;
+     }
 
     /**
      * <p>
@@ -733,43 +743,43 @@ public class AnimCube extends SurfaceView implements View.OnTouchListener {
      * @param state a {@link Bundle} containing a previously saved state of the cube.
      * @see #saveState()
      */
-    public void restoreState(Bundle state) {
-        synchronized (animThreadLock) {
-            for (int i = 0; i < cube.length; i++) {
-                cube[i] = state.getIntArray(CubeState.KEY_CUBE + i);
-            }
-            for (int i = 0; i < initialCube.length; i++) {
-                initialCube[i] = state.getIntArray(CubeState.KEY_INITIAL_CUBE + i);
-            }
+     public void restoreState(Bundle state) {
+         synchronized (animThreadLock) {
+             for (int i = 0; i < cube.length; i++) {
+                 cube[i] = state.getIntArray(CubeState.KEY_CUBE + i);
+             }
+             for (int i = 0; i < initialCube.length; i++) {
+                 initialCube[i] = state.getIntArray(CubeState.KEY_INITIAL_CUBE + i);
+             }
 
-            move = state.getIntArray(CubeState.KEY_MOVE);
-            movePos = state.getInt(CubeState.KEY_MOVE_POS);
-            originalAngle = state.getDouble(CubeState.KEY_ORIGINAL_ANGLE);
+             move = state.getIntArray(CubeState.KEY_MOVE);
+             movePos = state.getInt(CubeState.KEY_MOVE_POS);
+             originalAngle = state.getDouble(CubeState.KEY_ORIGINAL_ANGLE);
 
-            double[] buffer = state.getDoubleArray(CubeState.KEY_EYE);
-            System.arraycopy(buffer, 0, eye, 0, eye.length);
-            buffer = state.getDoubleArray(CubeState.KEY_EYE_X);
-            System.arraycopy(buffer, 0, eyeX, 0, eyeX.length);
-            buffer = state.getDoubleArray(CubeState.KEY_EYE_Y);
-            System.arraycopy(buffer, 0, eyeY, 0, eyeY.length);
+             double[] buffer = state.getDoubleArray(CubeState.KEY_EYE);
+             System.arraycopy(buffer, 0, eye, 0, eye.length);
+             buffer = state.getDoubleArray(CubeState.KEY_EYE_X);
+             System.arraycopy(buffer, 0, eyeX, 0, eyeX.length);
+             buffer = state.getDoubleArray(CubeState.KEY_EYE_Y);
+             System.arraycopy(buffer, 0, eyeY, 0, eyeY.length);
 
-            editable = state.getBoolean(CubeState.KEY_EDITABLE);
-            backFacesDistance = state.getInt(CubeState.KEY_BACKFACES_DISTANCE);
-            setBackFacesDistanceInternal(backFacesDistance);
-            speed = state.getInt(CubeState.KEY_SINGLE_ROTATION_SPEED);
-            doubleSpeed = state.getInt(CubeState.KEY_DOUBLE_ROTATION_SPEED);
-            isDebuggable = state.getBoolean(CubeState.KEY_IS_DEBUGGABLE);
+             editable = state.getBoolean(CubeState.KEY_EDITABLE);
+             backFacesDistance = state.getInt(CubeState.KEY_BACKFACES_DISTANCE);
+             setBackFacesDistanceInternal(backFacesDistance);
+             speed = state.getInt(CubeState.KEY_SINGLE_ROTATION_SPEED);
+             doubleSpeed = state.getInt(CubeState.KEY_DOUBLE_ROTATION_SPEED);
+             isDebuggable = state.getBoolean(CubeState.KEY_IS_DEBUGGABLE);
 
-            repaint();
-            boolean animating = state.getBoolean(CubeState.KEY_IS_ANIMATING);
-            if (animating) {
-                int animationMode = state.getInt(CubeState.KEY_ANIMATION_MODE);
-                if (animationMode != AnimationMode.STOPPED) {
-                    startAnimation(animationMode);
-                }
-            }
-        }
-    }
+             repaint();
+             boolean animating = state.getBoolean(CubeState.KEY_IS_ANIMATING);
+             if (animating) {
+                 int animationMode = state.getInt(CubeState.KEY_ANIMATION_MODE);
+                 if (animationMode != AnimationMode.STOPPED) {
+                     startAnimation(animationMode);
+                 }
+             }
+         }
+     }
 
     /**
      * <p>
@@ -820,41 +830,41 @@ public class AnimCube extends SurfaceView implements View.OnTouchListener {
         }
     }
 
-    private void init(Context context, AttributeSet attrs) {
-        TypedArray attributes = context.obtainStyledAttributes(attrs,
-                R.styleable.AnimCube);
+     private void init(Context context, AttributeSet attrs) {
+         TypedArray attributes = context.obtainStyledAttributes(attrs,
+                 R.styleable.AnimCube);
 
-        initBackgroundColor(attributes);
-        initCubeColors(attributes);
-        initFaceletsContourColor(attributes);
-        initCubeInitialState(attributes);
-        initMoves(attributes);
-        initEditable(attributes);
-        initInitialRotation(attributes);
-        initBackFacesDistance(attributes);
-        initGestureSensitivity(attributes);
-        initScale(attributes);
-        initPerspective(attributes);
-        initVerticalAlign(attributes);
-        initHorizontalAlign(attributes);
-        initSingleRotationSpeed(attributes);
-        initDoubleRotationSpeed(attributes);
-        initDebuggable(attributes);
-        //done, recycle typed array
-        attributes.recycle();
+         initBackgroundColor(attributes);
+         initCubeColors(attributes);
+         initFaceletsContourColor(attributes);
+         initCubeInitialState(attributes);
+         initMoves(attributes);
+         initEditable(attributes);
+         initInitialRotation(attributes);
+         initBackFacesDistance(attributes);
+         initGestureSensitivity(attributes);
+         initScale(attributes);
+         initPerspective(attributes);
+         initVerticalAlign(attributes);
+         initHorizontalAlign(attributes);
+         initSingleRotationSpeed(attributes);
+         initDoubleRotationSpeed(attributes);
+         initDebuggable(attributes);
+         //done, recycle typed array
+         attributes.recycle();
 
-        if (!isInEditMode()) {
-            // get the surface holder of he current surface view, add this view as a
-            // callback
-            getHolder().addCallback(surfaceCallback);
-            animThread = new Thread(animRunnable, "AnimThread");
-            // start animation thread
-            animThread.start();
+         if (!isInEditMode()) {
+             // get the surface holder of he current surface view, add this view as a
+             // callback
+             getHolder().addCallback(surfaceCallback);
+             animThread = new Thread(animRunnable, "AnimThread");
+             // start animation thread
+             animThread.start();
 
-            // register to receive touch events
-            setOnTouchListener(this);
-        }
-    }
+             // register to receive touch events
+             setOnTouchListener(this);
+         }
+     }
 
     private void initDebuggable(TypedArray attributes) {
         this.isDebuggable = attributes.getBoolean(R.styleable.AnimCube_debuggable, false);
@@ -1009,83 +1019,83 @@ public class AnimCube extends SurfaceView implements View.OnTouchListener {
      * @param mode a values from {@link AnimationMode} indicating the desires animation mode.
      * @see AnimationMode
      */
-    private void startAnimation(int mode) {
-        synchronized (animThreadLock) {
-            stopAnimation();
-            if (move.length == 0) {
-                return;
-            }
-            switch (mode) {
-                case AnimationMode.AUTO_PLAY_FORWARD: // play forward
-                    moveDir = 1;
-                    moveOne = false;
-                    moveAnimated = true;
-                    break;
-                case AnimationMode.AUTO_PLAY_BACKWARD: // play backward
-                    moveDir = -1;
-                    moveOne = false;
-                    moveAnimated = true;
-                    break;
-                case AnimationMode.STEP_FORWARD: // step forward
-                    moveDir = 1;
-                    moveOne = true;
-                    moveAnimated = true;
-                    break;
-                case AnimationMode.STEP_BACKWARD: // step backward
-                    moveDir = -1;
-                    moveOne = true;
-                    moveAnimated = true;
-                    break;
-                case AnimationMode.AUTO_FAST_FORWARD: // fast forward
-                    moveDir = 1;
-                    moveOne = false;
-                    moveAnimated = false;
-                    break;
-                case AnimationMode.AUTO_FAST_BACKWARD: // fast forward
-                    moveDir = -1;
-                    moveOne = false;
-                    moveAnimated = false;
-                    break;
-                case AnimationMode.STEP_FAST_FORWARD: // step one fast forward
-                    moveDir = 1;
-                    moveOne = true;
-                    moveAnimated = false;
-                    break;
-                case AnimationMode.STEP_FAST_BACKWARD: // step one fast backward
-                    moveDir = -1;
-                    moveOne = true;
-                    moveAnimated = false;
-                    break;
-                default:
+     private void startAnimation(int mode) {
+         synchronized (animThreadLock) {
+             stopAnimation();
+             if (move.length == 0) {
+                 return;
+             }
+             switch (mode) {
+                 case AnimationMode.AUTO_PLAY_FORWARD: // play forward
+                     moveDir = 1;
+                     moveOne = false;
+                     moveAnimated = true;
+                     break;
+                 case AnimationMode.AUTO_PLAY_BACKWARD: // play backward
+                     moveDir = -1;
+                     moveOne = false;
+                     moveAnimated = true;
+                     break;
+                 case AnimationMode.STEP_FORWARD: // step forward
+                     moveDir = 1;
+                     moveOne = true;
+                     moveAnimated = true;
+                     break;
+                 case AnimationMode.STEP_BACKWARD: // step backward
+                     moveDir = -1;
+                     moveOne = true;
+                     moveAnimated = true;
+                     break;
+                 case AnimationMode.AUTO_FAST_FORWARD: // fast forward
+                     moveDir = 1;
+                     moveOne = false;
+                     moveAnimated = false;
+                     break;
+                 case AnimationMode.AUTO_FAST_BACKWARD: // fast forward
+                     moveDir = -1;
+                     moveOne = false;
+                     moveAnimated = false;
+                     break;
+                 case AnimationMode.STEP_FAST_FORWARD: // step one fast forward
+                     moveDir = 1;
+                     moveOne = true;
+                     moveAnimated = false;
+                     break;
+                 case AnimationMode.STEP_FAST_BACKWARD: // step one fast backward
+                     moveDir = -1;
+                     moveOne = true;
+                     moveAnimated = false;
+                     break;
+                 default:
                     LogUtil.w(TAG, "Unknown animation mode:" + mode + ". Nothing performed.", isDebuggable);
-                    return;
-            }
-            animationMode = mode;
-            animThreadLock.notify();
-        }
-    }
+                     return;
+             }
+             animationMode = mode;
+             animThreadLock.notify();
+         }
+     }
 
-    private void performDraw(Canvas canvas) {
-        synchronized (animThreadLock) {
-            paint.setColor(backgroundColor);
-            if (isInEditMode()) {
-                //Canvas.drawPaint is not supported in editMode...
-                canvas.drawRect(0, 0, 100000, 100000, paint);
-            } else {
-                canvas.drawPaint(paint);
-            }
-            int height = getHeight();
-            int width = getWidth();
-            // create offscreen buffer for double buffering
-            if (width != this.width || height != this.height) {
-                this.width = width;
-                this.height = height;
-            }
+     private void performDraw(Canvas canvas) {
+         synchronized (animThreadLock) {
+             paint.setColor(backgroundColor);
+             if (isInEditMode()) {
+                 //Canvas.drawPaint is not supported in editMode...
+                 canvas.drawRect(0, 0, 100000, 100000, paint);
+             } else {
+                 canvas.drawPaint(paint);
+             }
+             int height = getHeight();
+             int width = getWidth();
+             // create offscreen buffer for double buffering
+             if (width != this.width || height != this.height) {
+                 this.width = width;
+                 this.height = height;
+             }
 
-            dragAreas = 0;
-            if (natural) { // compact cube
-                fixBlock(canvas, eye, eyeX, eyeY, cubeBlocks, 3); // draw cube and fill drag areas
-            } else { // in twisted state
+             dragAreas = 0;
+             if (natural) { // compact cube
+                 fixBlock(canvas, eye, eyeX, eyeY, cubeBlocks, 3); // draw cube and fill drag areas
+             } else { // in twisted state
                 // compute top observer
                 double cosA = Math.cos(originalAngle + currentAngle);
                 double sinA = Math.sin(originalAngle + currentAngle) * rotSign[twistedLayer];
@@ -1156,21 +1166,21 @@ public class AnimCube extends SurfaceView implements View.OnTouchListener {
                         eyeArray[eyeOrder[twistedMode][drawOrder[orderMode][2]]],
                         eyeArrayX[eyeOrder[twistedMode][drawOrder[orderMode][2]]],
                         eyeArrayY[eyeOrder[twistedMode][drawOrder[orderMode][2]]],
-                        blockArray[drawOrder[orderMode][2]],
-                        blockMode[twistedMode][drawOrder[orderMode][2]]);
-            }
-        }
-    }
+                 blockArray[drawOrder[orderMode][2]],
+                 blockMode[twistedMode][drawOrder[orderMode][2]]);
+             }
+         }
+     }
 
-    private void repaint() {
-        synchronized (animThreadLock) {
-            Canvas c = getHolder().lockCanvas();
-            if (c != null) {
-                performDraw(c);
-                getHolder().unlockCanvasAndPost(c);
-            }
-        }
-    }
+     private void repaint() {
+         synchronized (animThreadLock) {
+             Canvas c = getHolder().lockCanvas();
+             if (c != null) {
+                 performDraw(c);
+                 getHolder().unlockCanvasAndPost(c);
+             }
+         }
+     }
 
     private int[] getMove(String sequence) {
         int num = 1;
@@ -1337,112 +1347,112 @@ public class AnimCube extends SurfaceView implements View.OnTouchListener {
         CubeUtils.deepCopy2DArray(initialCube, cube);
     }
 
-    private void animateCube() {
-        synchronized (animThreadLock) {
-            interrupted = false;
-            animThreadInactive = false;
-            do {
-                if (restarted) {
-                    animThreadLock.notify();
-                }
-                try {
-                    animThreadLock.wait();
-                } catch (InterruptedException e) {
-                    interrupted = true;
-                    break;
-                }
-                if (restarted) {
-                    continue;
-                }
-                boolean restart = false;
-                animating = true;
-                int[] mv = move;
-                if (moveDir > 0) {
-                    if (movePos >= mv.length) {
-                        movePos = 0;
-                    }
-                } else {
-                    if (movePos == 0) {
-                        movePos = mv.length;
-                    }
-                }
-                while (true) {
-                    if (moveDir < 0) {
-                        if (movePos == 0) {
-                            break;
-                        }
-                        movePos--;
-                    }
-                    if (mv[movePos] == -1) {
-                        repaint();
-                        if (!moveOne) {
-                            sleep(33 * speed);
-                            if (interrupted || restarted) {
-                                break;
-                            }
-                        }
-                    } else if (mv[movePos] < 1000) {
-                        int num = mv[movePos] % 4 + 1;
-                        int mode = mv[movePos] / 4 % 6;
-                        boolean clockwise = num < 3;
-                        if (num == 4) {
-                            num = 2;
-                        }
-                        if (moveDir < 0) {
-                            clockwise = !clockwise;
-                            num = 4 - num;
-                        }
-                        spin(mv[movePos] / 24, num, mode, clockwise, moveAnimated);
-                        if (moveOne) {
-                            restart = true;
-                        }
-                    }
-                    if (moveDir > 0) {
-                        movePos++;
-                        if (movePos < mv.length && mv[movePos] >= 1000) {
-                            movePos++;
-                        }
-                        if (movePos == mv.length) {
-                            break;
-                        }
-                    }
-                    if (interrupted || restarted || restart) {
-                        break;
-                    }
-                }
-                animating = false;
-                animationMode = AnimationMode.STOPPED;
-                repaint();
-                notifyHandlerAnimationFinished();
-            } while (!interrupted);
-            animThreadInactive = true;
-        }
+     private void animateCube() {
+         synchronized (animThreadLock) {
+             interrupted = false;
+             animThreadInactive = false;
+             do {
+                 if (restarted) {
+                     animThreadLock.notify();
+                 }
+                 try {
+                     animThreadLock.wait();
+                 } catch (InterruptedException e) {
+                     interrupted = true;
+                     break;
+                 }
+                 if (restarted) {
+                     continue;
+                 }
+                 boolean restart = false;
+                 animating = true;
+                 int[] mv = move;
+                 if (moveDir > 0) {
+                     if (movePos >= mv.length) {
+                         movePos = 0;
+                     }
+                 } else {
+                     if (movePos == 0) {
+                         movePos = mv.length;
+                     }
+                 }
+                 while (true) {
+                     if (moveDir < 0) {
+                         if (movePos == 0) {
+                             break;
+                         }
+                         movePos--;
+                     }
+                     if (mv[movePos] == -1) {
+                         repaint();
+                         if (!moveOne) {
+                             sleep(33 * speed);
+                             if (interrupted || restarted) {
+                                 break;
+                             }
+                         }
+                     } else if (mv[movePos] < 1000) {
+                         int num = mv[movePos] % 4 + 1;
+                         int mode = mv[movePos] / 4 % 6;
+                         boolean clockwise = num < 3;
+                         if (num == 4) {
+                             num = 2;
+                         }
+                         if (moveDir < 0) {
+                             clockwise = !clockwise;
+                             num = 4 - num;
+                         }
+                         spin(mv[movePos] / 24, num, mode, clockwise, moveAnimated);
+                         if (moveOne) {
+                             restart = true;
+                         }
+                     }
+                     if (moveDir > 0) {
+                         movePos++;
+                         if (movePos < mv.length && mv[movePos] >= 1000) {
+                             movePos++;
+                         }
+                         if (movePos == mv.length) {
+                             break;
+                         }
+                     }
+                     if (interrupted || restarted || restart) {
+                         break;
+                     }
+                 }
+                 animating = false;
+                 animationMode = AnimationMode.STOPPED;
+                 repaint();
+                 notifyHandlerAnimationFinished();
+             } while (!interrupted);
+             animThreadInactive = true;
+         }
     } // run()
 
-    private void stopAnimationAndDrawing() {
-        synchronized (animThreadLock) {
-            interrupted = true;
-        }
+     private void stopAnimationAndDrawing() {
+         synchronized (animThreadLock) {
+             interrupted = true;
+         }
 
-        if (animThread.isAlive()) {
-            animThread.interrupt();
-            try {
-                animThread.join();
-            } catch (InterruptedException e) {
+         if (animThread.isAlive()) {
+             animThread.interrupt();
+             try {
+                 animThread.join();
+             } catch (InterruptedException e) {
                 LogUtil.w(TAG, "Interrupted while waiting for AnimThread to finish", isDebuggable);
-            }
-        }
-    }
+             }
+         }
+     }
 
-    private void sleep(int time) {
-        synchronized (animThreadLock) {
-            try {
-                animThreadLock.wait(time);
-            } catch (InterruptedException e) {
-                interrupted = true;
-            }
-        }
-    }
+     private void sleep(int time) {
+         synchronized (animThreadLock) {
+             try {
+                 animThreadLock.wait(time);
+             } catch (InterruptedException e) {
+                 interrupted = true;
+             }
+         }
+     }
 
     private void spin(int layer, int num, int mode, boolean clockwise, boolean animated) {
         twisting = false;
