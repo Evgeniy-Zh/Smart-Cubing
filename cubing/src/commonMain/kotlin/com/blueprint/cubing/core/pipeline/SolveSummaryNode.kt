@@ -90,21 +90,18 @@ class SolveSummaryNode(
     }
 
 
-    private fun onEvent(event: CubeEvent.Move) {
-        if (cubeStartTime == null && systemStartTime == null) { // if the solve is not started, ignore the move event
+    private fun onEvent(e: CubeEvent.Move) {
+        if (cubeStartTime == null && systemStartTime == null) { // if no active solve, ignore the move event
             return
         }
-        moves.add(ReplayData.Move(moveSequence = event.moveSequence, elapsed = event.elapsed))
+        var event = e
 
         if (totalTime == 0L) {
             if (cubeStartTime == null) { // if not triggered by a move, calculate elapsed time using system time
-                //TODO: add the time passed before the first move to Summaryop
-                totalTime = event.systemTimeStamp - systemStartTime!!
-            } else { // if triggered by a move, use elapsed cube time
-                totalTime = event.elapsed
+                event = event.copy(elapsed =  event.systemTimeStamp - systemStartTime!!)
             }
-            return
         }
+        moves.add(ReplayData.Move(moveSequence = event.moveSequence, elapsed = event.elapsed))
         totalTime += event.elapsed
     }
 

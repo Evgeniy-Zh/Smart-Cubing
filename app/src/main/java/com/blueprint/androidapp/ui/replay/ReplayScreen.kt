@@ -24,11 +24,16 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
 import androidx.compose.material.icons.filled.Pause
 import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.material.icons.filled.Stop
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -36,6 +41,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -168,6 +174,7 @@ fun ReplayScreen(
                             errorText = state.errorMessage,
                             onSelectSolve = { replayViewModel.handleAction(ReplayViewModel.Action.SelectSolve(it)) },
                             onDeleteSolve = { replayViewModel.handleAction(ReplayViewModel.Action.DeleteSolve(it)) },
+                            onEditSolve = { replayViewModel.handleAction(ReplayViewModel.Action.EditSolve(it)) },
                         )
                     }
                 } else {
@@ -203,6 +210,7 @@ fun ReplayScreen(
                             errorText = state.errorMessage,
                             onSelectSolve = { replayViewModel.handleAction(ReplayViewModel.Action.SelectSolve(it)) },
                             onDeleteSolve = { replayViewModel.handleAction(ReplayViewModel.Action.DeleteSolve(it)) },
+                            onEditSolve = { replayViewModel.handleAction(ReplayViewModel.Action.EditSolve(it)) },
                         )
                     }
                 }
@@ -344,7 +352,38 @@ private fun ReplayListPanel(
     errorText: String?,
     onSelectSolve: (com.blueprint.cubing.replay.model.SolvePreview) -> Unit,
     onDeleteSolve: (com.blueprint.cubing.replay.model.SolvePreview) -> Unit,
+    onEditSolve: (com.blueprint.cubing.replay.model.SolvePreview) -> Unit,
 ) {
+    var expandedItemId by remember { mutableStateOf<String?>(null) }
+    var pendingDelete by remember { mutableStateOf<com.blueprint.cubing.replay.model.SolvePreview?>(null) }
+
+    if (pendingDelete != null) {
+        AlertDialog(
+            onDismissRequest = { pendingDelete = null },
+            title = { Text("Delete replay") },
+            text = {
+                Text(
+                    text = "Are you sure you want to delete \"${pendingDelete!!.name}\"?"
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        onDeleteSolve(pendingDelete!!)
+                        pendingDelete = null
+                    }
+                ) {
+                    Text("Delete")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { pendingDelete = null }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
     Card(
         modifier = modifier,
         colors = CardDefaults.cardColors(
@@ -417,11 +456,49 @@ private fun ReplayListPanel(
                             }
                         }
 
-                        IconButton(onClick = { onDeleteSolve(solvePreview) }) {
-                            Icon(
-                                imageVector = Icons.Filled.Delete,
-                                contentDescription = "Delete replay"
-                            )
+                        Box {
+                            IconButton(
+                                onClick = {
+                                    expandedItemId = if (expandedItemId == solvePreview.id) null else solvePreview.id
+                                }
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Filled.MoreVert,
+                                    contentDescription = "Replay options"
+                                )
+                            }
+
+                            DropdownMenu(
+                                expanded = expandedItemId == solvePreview.id,
+                                onDismissRequest = { expandedItemId = null }
+                            ) {
+                                DropdownMenuItem(
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Filled.Edit,
+                                            contentDescription = null
+                                        )
+                                    },
+                                    text = { Text("Edit") },
+                                    onClick = {
+                                        onEditSolve(solvePreview)
+                                        expandedItemId = null
+                                    }
+                                )
+                                DropdownMenuItem(
+                                    leadingIcon = {
+                                        Icon(
+                                            imageVector = Icons.Filled.Delete,
+                                            contentDescription = null
+                                        )
+                                    },
+                                    text = { Text("Delete") },
+                                    onClick = {
+                                        pendingDelete = solvePreview
+                                        expandedItemId = null
+                                    }
+                                )
+                            }
                         }
                     }
                 }
