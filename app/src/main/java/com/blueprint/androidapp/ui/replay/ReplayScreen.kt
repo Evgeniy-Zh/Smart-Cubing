@@ -1,9 +1,8 @@
 package com.blueprint.androidapp.ui.replay
 
 import android.annotation.SuppressLint
-import android.view.WindowManager
+import android.os.Bundle
 import android.widget.Toast
-import androidx.activity.compose.LocalActivity
 import androidx.appcompat.view.ContextThemeWrapper
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -43,11 +42,14 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -62,14 +64,16 @@ import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.flowWithLifecycle
 import com.blueprint.androidapp.R
 import com.blueprint.androidapp.ui.cube.ext.animateSequenceAsync
-import com.blueprint.androidapp.ui.cube.ext.disconnectedCubeState
 import com.blueprint.androidapp.ui.cube.mapper.ANIM_CUBE_STATE
 import com.blueprint.cubing.core.model.CubeEvent
+import com.blueprint.cubing.log.Logger
 import com.blueprint.cubing.replay.model.PlayingState
 import com.blueprint.cubing.replay.ui.ReplayViewModel
 import com.catalinjurjiu.animcubeandroid.AnimCube
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.channels.consumeEach
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.koin.androidx.compose.koinViewModel
 
 @SuppressLint("UnusedBoxWithConstraintsScope")
@@ -82,16 +86,9 @@ fun ReplayScreen(
     val state by replayViewModel.state.collectAsStateWithLifecycle()
     val lifecycle = LocalLifecycleOwner.current.lifecycle
     val context = LocalContext.current
-    val activity = LocalActivity.current
     var cubeView by remember { mutableStateOf<AnimCube?>(null) }
+    val bundle = rememberSaveable() { mutableStateOf(Bundle()) }
 
-    DisposableEffect(activity) {
-        val window = activity?.window
-        window?.addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        onDispose {
-            window?.clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON)
-        }
-    }
 
     LaunchedEffect(state.solvePreviews, state.selectedSolvePreview) {
         if (state.selectedSolvePreview == null && state.solvePreviews.isNotEmpty()) {
@@ -100,33 +97,31 @@ fun ReplayScreen(
     }
 
     LaunchedEffect(replayViewModel) {
-        launch(Dispatchers.Main) {
-            replayViewModel.cubeEvents
-                .flowWithLifecycle(lifecycle, Lifecycle.State.STARTED)
-                .collect { event ->
-                    when (event) {
-                        is CubeEvent.CubeStateUpdated -> {
-                            cubeView?.setCubeModel(event.arbitraryFormattedStates[ANIM_CUBE_STATE])
-                        }
-
-                        is CubeEvent.Move -> {
-                            val speed = 1
-                            cubeView?.setSingleRotationSpeed(speed)
-                            cubeView?.setDoubleRotationSpeed(speed)
-                            cubeView?.animateSequenceAsync(event.moveSequence)
-                        }
-
-                        is CubeEvent.Error -> {
-                            Toast.makeText(
-                                context,
-                                event.displayMessage ?: event.throwable.message ?: "Replay error",
-                                Toast.LENGTH_SHORT
-                            ).show()
-                        }
-
-                        else -> Unit
+        withContext(Dispatchers.Main.immediate) {
+            for (event in replayViewModel.cubeEvents) {
+                when (event) {
+                    is CubeEvent.CubeStateUpdated -> {
+                        cubeView?.setCubeModel(event.arbitraryFormattedStates[ANIM_CUBE_STATE])
                     }
+
+                    is CubeEvent.Move -> {
+                        val speed = 1
+                        cubeView?.setSingleRotationSpeed(speed)
+                        cubeView?.setDoubleRotationSpeed(speed)
+                        cubeView?.animateSequenceAsync(event.moveSequence)
+                    }
+
+                    is CubeEvent.Error -> {
+                        Toast.makeText(
+                            context,
+                            event.displayMessage ?: event.throwable.message ?: "Replay error",
+                            Toast.LENGTH_SHORT
+                        ).show()
+                    }
+
+                    else -> Unit
                 }
+            }
         }
     }
 
@@ -162,6 +157,7 @@ fun ReplayScreen(
                                 replayViewModel.handleAction(ReplayViewModel.Action.SetSpeed(speed))
                             },
                             onCubeViewReady = { cubeView = it },
+                            bundle = bundle,
                         )
 
                         ReplayListPanel(
@@ -198,6 +194,7 @@ fun ReplayScreen(
                                 replayViewModel.handleAction(ReplayViewModel.Action.SetSpeed(speed))
                             },
                             onCubeViewReady = { cubeView = it },
+                            bundle = bundle,
                         )
 
                         ReplayListPanel(
@@ -233,19 +230,24 @@ private fun ReplayCubePanel(
     onStop: () -> Unit,
     onSpeedSelected: (ReplayViewModel.Speed) -> Unit,
     onCubeViewReady: (AnimCube) -> Unit,
+    bundle: MutableState<Bundle>,
 ) {
+    var bundle by bundle
     Box(modifier = modifier) {
+
         AndroidView(
             modifier = Modifier.fillMaxSize(),
             factory = { ctx ->
                 val themedContext = ContextThemeWrapper(ctx, R.style.AnimCubeDark)
                 AnimCube(themedContext).apply {
                     setDebuggable(true)
+                    if (!bundle.isEmpty) restoreState(bundle)
                 }.also(onCubeViewReady)
             },
             update = { },
             onRelease = { view ->
                 view.cleanUpResources()
+                bundle = view.saveState() ?: Bundle()
             },
         )
 

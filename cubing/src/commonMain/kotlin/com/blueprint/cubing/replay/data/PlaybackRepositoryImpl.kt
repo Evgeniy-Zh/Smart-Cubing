@@ -44,7 +44,10 @@ class PlaybackRepositoryImpl(
             ))
 
             for(m in replay.moves){
-                val move = CubeEvent.Move(m.move, m.timestamp)
+                val move = CubeEvent.Move(
+                    moveSequence = m.move,
+                    elapsed = m.timestamp,
+                )
                 add(move)
             }
         }

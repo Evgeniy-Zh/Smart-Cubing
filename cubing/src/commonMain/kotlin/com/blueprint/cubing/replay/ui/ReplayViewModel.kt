@@ -2,24 +2,22 @@ package com.blueprint.cubing.replay.ui
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.blueprint.cubing.core.flow.shareSuspendingWhileNoSubs
 import com.blueprint.cubing.core.model.CubeEvent
-import com.blueprint.cubing.replay.SolveHistoryRepository
 import com.blueprint.cubing.replay.ReplayStateManager
+import com.blueprint.cubing.replay.SolveHistoryRepository
 import com.blueprint.cubing.replay.model.PlayingState
 import com.blueprint.cubing.replay.model.SolvePreview
 import kotlinx.collections.immutable.ImmutableList
 import kotlinx.collections.immutable.persistentListOf
 import kotlinx.collections.immutable.toPersistentList
 import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.channels.ReceiveChannel
 import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.SharingStarted
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.combine
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.onEach
-import kotlinx.coroutines.flow.onStart
 import kotlinx.coroutines.flow.stateIn
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
@@ -62,8 +60,7 @@ class ReplayViewModel(
     private val _errorState = MutableStateFlow<String?>(null)
     private val _selectedSolvePreviewState = MutableStateFlow<SolvePreview?>(null)
 
-    val cubeEvents: SharedFlow<CubeEvent> = replayStateManager.observeCubeEvents()
-        .shareSuspendingWhileNoSubs(scope = viewModelScope)
+    val cubeEvents: ReceiveChannel<CubeEvent> = replayStateManager.observeCubeEvents()
 
     val state: StateFlow<State> = combine(
         solvePreviewListState.map { it.toPersistentList() },

@@ -670,11 +670,14 @@ public class AnimCube extends SurfaceView implements View.OnTouchListener {
      */
      public void setOnAnimationFinishedListener(OnCubeAnimationFinishedListener onCubeAnimationFinishedListener) {
          synchronized (animThreadLock) {
-             if (onCubeAnimationFinishedListener == null) {
-                //listener removed, shutdown handler
-                     this.mainThreadHandler.removeMessages(NOTIFY_LISTENER_ANIMATION_FINISHED);
-                 }
              this.cubeAnimationFinishedListener = onCubeAnimationFinishedListener;
+             if(this.mainThreadHandler == null) {
+                 return;
+             }
+             if(onCubeAnimationFinishedListener == null) {
+                 //listener removed, shutdown handler
+                 this.mainThreadHandler.removeMessages(NOTIFY_LISTENER_ANIMATION_FINISHED);
+             }
          }
      }
 

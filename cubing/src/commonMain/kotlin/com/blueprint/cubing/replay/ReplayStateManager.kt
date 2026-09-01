@@ -2,20 +2,19 @@ package com.blueprint.cubing.replay
 
 import com.blueprint.cubing.core.format.TimeFormat
 import com.blueprint.cubing.core.model.CubeEvent
-import com.blueprint.cubing.cube.timer.CubeTimer
 import com.blueprint.cubing.replay.model.PlayingState
 import com.blueprint.cubing.replay.model.SolvePreview
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.channels.ReceiveChannel
+import kotlinx.coroutines.channels.produce
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.buffer
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
-import kotlinx.coroutines.flow.transform
-import kotlinx.coroutines.flow.transformLatest
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.milliseconds
@@ -37,28 +36,33 @@ class ReplayStateManager(
     val playingState: StateFlow<PlayingState> = _playingState
 
     @OptIn(ExperimentalCoroutinesApi::class)
-    fun observeCubeEvents(): Flow<CubeEvent> {
-        return currentReplayId.transformLatest { replayId ->
-            replayId ?: return@transformLatest
-            stop()
-            var elapsed = 0L
-            val events = playbackRepository.getAllReplayEvents(replayId)
-            totalTime = events.filterIsInstance<CubeEvent.Move>().sumOf { it.elapsed } //TODO: get total time
+    fun observeCubeEvents(): ReceiveChannel<CubeEvent> {
 
-            emit(events[0] as CubeEvent.CubeStateUpdated)
-            for (i in 1..events.lastIndex) {
-                val event = events[i]
-                val timeMultiplier = playingState.value.speed
-                if(event is CubeEvent.Move) {
-                    elapsed = event.elapsed
-                }
-                val d = (elapsed / timeMultiplier).toLong()
+        return coroutineScope.produce(Dispatchers.Main.immediate) {
 
-                playingState.first { it.status == PlayingState.Status.PLAYING }
-                delay(d.milliseconds)
-                emit(event)
-                if (event is CubeEvent.Move) {
-                    elapsed = event.elapsed
+            currentReplayId.collectLatest { replayId ->
+                replayId ?: return@collectLatest
+                stop()
+                var elapsed = 0L
+                val events = playbackRepository.getAllReplayEvents(replayId)
+                totalTime = events.filterIsInstance<CubeEvent.Move>()
+                    .sumOf { it.elapsed } //TODO: get total time
+
+                send(events[0] as CubeEvent.CubeStateUpdated)
+                for (i in 1..events.lastIndex) {
+                    val event = events[i]
+                    val timeMultiplier = playingState.value.speed
+                    if (event is CubeEvent.Move) {
+                        elapsed = event.elapsed
+                    }
+                    val d = (elapsed / timeMultiplier).toLong()
+
+                    playingState.first { it.status == PlayingState.Status.PLAYING }
+                    delay(d.milliseconds)
+                    send(event)
+                    if (event is CubeEvent.Move) {
+                        elapsed = event.elapsed
+                    }
                 }
             }
         }
