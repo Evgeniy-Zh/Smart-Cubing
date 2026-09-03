@@ -9,7 +9,8 @@ data class PlayingState(
     enum class Status {
         PLAYING,
         PAUSED,
-        STOPPED
+        STOPPED,
+        FINISHED,
     }
 
     companion object {

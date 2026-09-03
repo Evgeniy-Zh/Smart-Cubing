@@ -17,10 +17,15 @@ import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.yield
+import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.ExperimentalTime
 
+@OptIn(ExperimentalTime::class)
 class ReplayStateManager(
-    private val playbackRepository: PlaybackRepository
+    private val playbackRepository: PlaybackRepository,
+    private val getSysTimeStamp: () -> Long = { Clock.System.now().toEpochMilliseconds() },
 ) {
 
     private val coroutineScope = CoroutineScope(kotlinx.coroutines.Dispatchers.Default)
@@ -35,6 +40,14 @@ class ReplayStateManager(
         MutableStateFlow(PlayingState.Default)
     val playingState: StateFlow<PlayingState> = _playingState
 
+    init {
+        coroutineScope.launch {
+            timer.currentTimeFormatted.collect { time ->
+                _playingState.update { it.copy(time = time) }
+            }
+        }
+    }
+
     @OptIn(ExperimentalCoroutinesApi::class)
     fun observeCubeEvents(): ReceiveChannel<CubeEvent> {
 
@@ -42,47 +55,48 @@ class ReplayStateManager(
 
             currentReplayId.collectLatest { replayId ->
                 replayId ?: return@collectLatest
-                stop()
+
                 var elapsed = 0L
                 val events = playbackRepository.getAllReplayEvents(replayId)
-                totalTime = events.filterIsInstance<CubeEvent.Move>()
-                    .sumOf { it.elapsed } //TODO: get total time
 
                 send(events[0] as CubeEvent.CubeStateUpdated)
-                for (i in 1..events.lastIndex) {
-                    val event = events[i]
-                    val timeMultiplier = playingState.value.speed
-                    if (event is CubeEvent.Move) {
-                        elapsed = event.elapsed
-                    }
-                    val d = (elapsed / timeMultiplier).toLong()
+
+                val eventTimestamps = events.integrateMoveElapsedTimes()
+                totalTime = eventTimestamps.last()
+
+                var i = 1
+
+                while(i < events.size) {
 
                     playingState.first { it.status == PlayingState.Status.PLAYING }
-                    delay(d.milliseconds)
-                    send(event)
-                    if (event is CubeEvent.Move) {
-                        elapsed = event.elapsed
+
+                    val t1 = getSysTimeStamp()
+                    while (i < events.size && elapsed >= eventTimestamps[i]) {
+                        send(events[i])
+                        i++
+                        yield()
                     }
+                    delay(20.milliseconds)
+                    val t2 = getSysTimeStamp()
+                    elapsed+= ((t2 - t1) * _playingState.value.speed).toLong()
+
                 }
+
+                _playingState.update { it.copy(status = PlayingState.Status.FINISHED) }
             }
         }
     }
 
     fun setReplay(replay: SolvePreview) {
         currentReplayId.value = replay.id
+        stop()
     }
 
     fun play() {
         _playingState.update {
             it.copy(status = PlayingState.Status.PLAYING)
         }
-
         timer.start(totalTime)
-        coroutineScope.launch {
-            timer.currentTimeFormatted.collect { time ->
-                _playingState.update { it.copy(time = time) }
-            }
-        }
     }
 
     fun pause() {
@@ -110,9 +124,28 @@ class ReplayStateManager(
         timer.setSpeed(speed)
     }
 
+    fun stepForward() {
+        TODO("Not implemented")
+    }
+
+    fun stepBackward() {
+        TODO("Not implemented")
+    }
+
     fun onClose() {
         coroutineScope.cancel()
         timer.cancel()
+    }
+
+    private fun List<CubeEvent>.integrateMoveElapsedTimes(): LongArray {
+        var sum = 0L
+        val arr = LongArray(this.size)
+        for(i in this.indices) {
+            val move = this[i] as? CubeEvent.Move ?: continue
+            sum += move.elapsed
+            arr[i] = sum
+        }
+        return arr
     }
 
 }

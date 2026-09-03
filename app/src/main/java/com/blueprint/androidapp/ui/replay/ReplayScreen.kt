@@ -45,10 +45,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
@@ -58,21 +56,16 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.viewinterop.AndroidView
-import androidx.lifecycle.Lifecycle
 import androidx.lifecycle.compose.LocalLifecycleOwner
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
-import androidx.lifecycle.flowWithLifecycle
 import com.blueprint.androidapp.R
 import com.blueprint.androidapp.ui.cube.ext.animateSequenceAsync
 import com.blueprint.androidapp.ui.cube.mapper.ANIM_CUBE_STATE
 import com.blueprint.cubing.core.model.CubeEvent
-import com.blueprint.cubing.log.Logger
 import com.blueprint.cubing.replay.model.PlayingState
 import com.blueprint.cubing.replay.ui.ReplayViewModel
 import com.catalinjurjiu.animcubeandroid.AnimCube
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.channels.consumeEach
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import org.koin.androidx.compose.koinViewModel
 
@@ -289,7 +282,7 @@ private fun ReplayCubePanel(
 
                 IconButton(
                     onClick = playPauseAction,
-                    enabled = selectedSolveEnabled,
+                    enabled = selectedSolveEnabled && playingStatus != PlayingState.Status.FINISHED,
                     modifier = Modifier.weight(1f)
                 ) {
                     Icon(

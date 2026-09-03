@@ -44,7 +44,7 @@ class ReplayViewModel(
         val solvePreviews: ImmutableList<SolvePreview> = persistentListOf(),
         val selectedSolvePreview: SolvePreview? = null,
         val playingState: PlayingState = PlayingState.Default,
-        val isLoading: Boolean = false,
+        val isLoading: Boolean = true,
         val errorMessage: String? = null,
     )
 
@@ -56,6 +56,7 @@ class ReplayViewModel(
 
     private val solvePreviewListState = solveHistoryRepository
         .observeSolveList(pagingParams = SolveHistoryRepository.PagingParams.Latest(300))
+        .onEach { _isLoadingState.value = false }
     private val _isLoadingState = MutableStateFlow(true)
     private val _errorState = MutableStateFlow<String?>(null)
     private val _selectedSolvePreviewState = MutableStateFlow<SolvePreview?>(null)
@@ -76,25 +77,26 @@ class ReplayViewModel(
             isLoading = isLoading,
             errorMessage = error
         )
-    }.onEach { _isLoadingState.value = false }
-        .stateIn(
-            scope = viewModelScope,
-            started = SharingStarted.WhileSubscribed(5_000),
-            initialValue = State()
-        )
+    }.stateIn(
+        scope = viewModelScope,
+        started = SharingStarted.WhileSubscribed(5_000),
+        initialValue = State()
+    )
 
     fun handleAction(action: Action) {
+        _errorState.value = null
+
         when (action) {
             is Action.SelectSolve -> selectSolvePreview(action.solvePreview)
             Action.Play -> play()
             Action.Pause -> pause()
             Action.Stop -> stop()
+            Action.StepBack -> stepBack()
+            Action.StepForward -> stepForward()
             is Action.SetSpeed -> setSpeed(action.speed.multiplier)
             is Action.DeleteSolve -> deleteSolve(action.solvePreview)
-            is Action.EditSolve -> TODO()
-            Action.StepBack -> TODO()
-            Action.StepForward -> TODO()
-            is Action.StepTo -> TODO()
+            is Action.EditSolve -> editSolve(action.solvePreview)
+            is Action.StepTo -> stepTo(action.time)
         }
     }
 
@@ -115,8 +117,24 @@ class ReplayViewModel(
         replayStateManager.stop()
     }
 
+    private fun stepForward() {
+        replayStateManager.stepForward()
+    }
+
+    private fun stepBack() {
+        replayStateManager.stepBackward()
+    }
+
     private fun setSpeed(speed: Float) {
         replayStateManager.setSpeed(speed)
+    }
+
+    private fun stepTo(time: Long) {
+        TODO("Not implemented")
+    }
+
+    private fun editSolve(solvePreview: SolvePreview) {
+        TODO("Not implemented")
     }
 
     private fun deleteSolve(solvePreview: SolvePreview) = viewModelScope.launch {
