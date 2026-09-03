@@ -2,34 +2,19 @@ package com.blueprint.cubing.cube.ui.components
 
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.tween
-import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-// ...existing code...
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.widthIn
-import androidx.compose.foundation.shape.CircleShape
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material.icons.filled.Search
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Icon
-import androidx.compose.material3.DropdownMenu
-import androidx.compose.material3.DropdownMenuItem
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.scale
@@ -44,10 +29,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import com.blueprint.cubing.cube.ui.CubeViewModel
 import com.blueprint.cubing.core.model.ConnectionState
 import com.blueprint.cubing.core.model.CubeDevice
 import com.blueprint.cubing.cube.SolveStateManager
+import com.blueprint.cubing.cube.ui.CubeViewModel
 import com.blueprint.cubing.replay.model.SolvePreview
 import com.blueprint.cubing.replay.ui.SolveHistoryList
 
@@ -122,25 +107,9 @@ fun CubeOverlayContent(
     ) {
         // Transparent background by default so cube remains visible behind this overlay
 
-        // Reset button (top-end) — invisible unless there is an active connected device
-        if (activeDevice != null && connectionState is ConnectionState.Connected) {
-            IconButton(
-                onClick = { onAction(CubeViewModel.Action.Reset) },
-                modifier = Modifier
-                    .align(Alignment.TopEnd)
-                    .padding(16.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Refresh,
-                    contentDescription = "Reset",
-                    tint = Color.White
-                )
-            }
-        }
-
-        ActiveDevicesIndicator(
+        CubeControls(
             modifier = Modifier
-                .align(Alignment.TopCenter)
+                .align(Alignment.TopStart)
                 .padding(16.dp),
             connectionState = connectionState,
             cubeList = cubeList,
@@ -213,17 +182,6 @@ fun CubeOverlayContent(
                 )
             }
 
-            Icon(
-                modifier = Modifier
-                    .align(Alignment.BottomEnd)
-                    .padding(16.dp)
-                    .clickable(onClick = { onAction(CubeViewModel.Action.SearchDevices) })
-                    .background(color = Color.Gray, shape = CircleShape)
-                    .padding(8.dp),
-                imageVector = Icons.Default.Search,
-                contentDescription = "Search"
-            )
-
             SolveHistoryList(
                 modifier = Modifier
                     .align(Alignment.BottomStart)
@@ -235,80 +193,5 @@ fun CubeOverlayContent(
         }
 
     }
-}
-
-@Composable
-fun ActiveDevicesIndicator(
-    modifier: Modifier = Modifier,
-    activeDevice: CubeDevice?,
-    connectionState: ConnectionState,
-    cubeList: List<CubeDevice>,
-    onAction: (CubeViewModel.Action) -> Unit,
-) {
-    // Dropdown-only indicator: shows collapsed summary and expands to show available devices
-    val expanded = remember { mutableStateOf(false) }
-
-    val connectionStr = when (connectionState) {
-        is ConnectionState.Connected -> "Connected"
-        ConnectionState.Disconnected -> "Disconnected"
-        ConnectionState.Connecting -> "Connecting"
-        ConnectionState.Disconnecting -> "Disconnecting"
-        ConnectionState.FailedToConnect -> "Failed to connect"
-        ConnectionState.Initializing -> "Initializing"
-    }
-
-    Box(
-        modifier = modifier
-            .padding(vertical = 8.dp, horizontal = 12.dp),
-        contentAlignment = Alignment.TopCenter
-    ) {
-        Card(
-            shape = RoundedCornerShape(8.dp),
-            colors = CardDefaults.cardColors(containerColor = Color(0xAA111111)),
-            modifier = Modifier
-                .background(Color.Transparent)
-                .clickable { expanded.value = true }
-                .padding(4.dp)
-        ) {
-            Column(modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp), horizontalAlignment = Alignment.CenterHorizontally) {
-                Text(
-                    text = activeDevice?.name ?: "No Device",
-                    fontSize = 14.sp,
-                    color = Color.White
-                )
-                Text(
-                    text = connectionStr,
-                    fontSize = 12.sp,
-                    color = Color.White
-                )
-            }
-        }
-
-        DropdownMenu(
-            containerColor = Color(0xCC111111),
-            expanded = expanded.value,
-            onDismissRequest = { expanded.value = false }
-        ) {
-            if (cubeList.isEmpty()) {
-                DropdownMenuItem(
-                    text = { Text("No Devices", color = Color.White) },
-                    onClick = { expanded.value = false }
-                )
-            } else {
-                cubeList.forEach { device ->
-                    DropdownMenuItem(
-                        text = { Text(device.name, color = Color.White) },
-                        onClick = {
-                            onAction(CubeViewModel.Action.SelectDevice(device))
-                            expanded.value = false
-                        }
-                    )
-                }
-            }
-        }
-
-
-    }
-
 }
 
